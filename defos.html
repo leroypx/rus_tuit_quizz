@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Эксель DEFOS</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --border-color: rgba(255, 255, 255, 0.4);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --primary-text: #2c3e50;
+            --secondary-text: #5a6a7a;
+            --accent-color: #e67e22;
+            --accent-hover: #d35400;
+            --success-color: #27ae60;
+            --error-color: #c0392b;
+            --processing-color: #f39c12;
+            --info-color: #2980b9;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-image: linear-gradient(135deg, #f7d794 0%, #f5cd79 100%);
+            color: var(--primary-text);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        #app-container {
+            width: 95%;
+            max-width: 1400px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 var(--shadow-color);
+            padding: 40px;
+            margin: 20px 0;
+        }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { font-size: 2.8em; color: var(--accent-color); margin: 0; font-weight: 700; }
+        p.subtitle { font-size: 1.2em; color: var(--secondary-text); margin-top: 5px; }
+        
+        #tabs { display: flex; justify-content: center; margin-bottom: 25px; gap: 15px; }
+        .tab-button {
+            padding: 12px 25px; font-size: 1.1em; font-weight: 600; color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.5); border: 2px solid var(--accent-color);
+            border-radius: 10px; cursor: pointer; transition: all 0.3s ease;
+        }
+        .tab-button:hover { background-color: rgba(255, 255, 255, 0.8); }
+        .tab-button.active { background-color: var(--accent-color); color: white; }
+
+        #upload-section { display: flex; flex-direction: column; align-items: center; padding: 25px; border: 2px dashed var(--accent-hover); border-radius: 12px; background-color: rgba(255, 255, 255, 0.4); margin-bottom: 20px; cursor: pointer; transition: background-color 0.3s ease; }
+        #upload-section:hover { background-color: rgba(255, 255, 255, 0.6); }
+        #fileInput { display: none; }
+        #upload-label { font-weight: 500; color: var(--accent-hover); font-size: 1.1em; }
+
+        #status { text-align: center; font-weight: bold; font-size: 1.1em; padding: 10px; border-radius: 8px; min-height: 24px; transition: all 0.3s ease; margin: 10px 0; color: white; }
+        .status-processing { background-color: var(--processing-color); }
+        .status-success { background-color: var(--success-color); }
+        .status-error { background-color: var(--error-color); }
+        .status-info { background-color: var(--info-color); }
+
+        .task-container { margin-top: 30px; padding: 25px; border: 1px solid var(--border-color); border-radius: 12px; background: rgba(255, 255, 255, 0.4); }
+        .task-title { font-size: 1.8em; font-weight: 600; color: var(--primary-text); text-align: center; margin-bottom: 25px; }
+        h3 { color: var(--accent-hover); border-bottom: 2px solid var(--accent-hover); padding-bottom: 8px; margin-top: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.95em; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        thead tr { background-color: var(--accent-color); color: white; font-weight: 500; }
+        tbody tr { background-color: rgba(255, 255, 255, 0.7); transition: background-color 0.2s ease; }
+        tbody tr:nth-child(even) { background-color: rgba(245, 245, 245, 0.7); }
+        tbody tr:hover { background-color: rgba(230, 126, 34, 0.15); }
+        td.answer-letter { font-weight: bold; color: var(--success-color); text-align: center; }
+        td.answer-text { color: var(--primary-text); }
+        td.answer-cell { font-weight: bold; color: var(--success-color); }
+        
+        .question-block { margin-bottom: 30px; padding: 20px; background: rgba(255,255,255,0.5); border-radius: 10px; }
+        .question-block h3 { color: var(--accent-color); margin-top: 0; }
+        .question-text { font-weight: 500; font-size: 1.1em; margin: 10px 0; }
+        .options-title { margin: 15px 0; font-weight: 600; }
+        .option-row { padding: 8px; margin: 5px 0; border-radius: 5px; }
+        .option-correct { background-color: rgba(39, 174, 96, 0.2); font-weight: 600; }
+        .correct-answer { font-weight: 700; color: var(--success-color); font-size: 1.1em; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <header>
+            <h1>Эксельки DEFOS для Пельмешки 🍪</h1>
+            <p class="subtitle">Загрузите файл, а я разберусь!</p>
+        </header>
+
+        <div id="tabs">
+            <button class="tab-button active" data-type="test">Тесты</button>
+            <button class="tab-button" data-type="dars">Задачи (Dars)</button>
+            <button class="tab-button" data-type="masala">Бухгалтерия (Masala)</button>
+        </div>
+        
+        <label for="fileInput" id="upload-section">
+            <span id="upload-label">Нажмите здесь, чтобы выбрать файл</span>
+            <input type="file" id="fileInput" accept=".xlsx, .xls">
+        </label>
+        
+        <div id="status"></div>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        let userSelectedType = 'test';
+        const fileInput = document.getElementById('fileInput');
+        const statusEl = document.getElementById('status');
+        const outputEl = document.getElementById('output');
+        const tabs = document.querySelectorAll('.tab-button');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                userSelectedType = tab.dataset.type;
+                if (fileInput.files.length > 0) handleFile({ target: { files: fileInput.files } });
+            });
+        });
+        
+        fileInput.addEventListener('change', handleFile);
+        document.getElementById('upload-section').addEventListener('click', () => fileInput.click());
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            statusEl.className = 'status-processing';
+            statusEl.textContent = `Анализирую файл: ${file.name}...`;
+            outputEl.innerHTML = '';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                    
+                    const detectedType = detectFileType(workbook);
+                    if (detectedType === 'unknown') throw new Error('Не удалось определить тип файла. Структура не распознана.');
+
+                    let finalAnalysisType = userSelectedType;
+                    if (detectedType !== userSelectedType) {
+                        finalAnalysisType = detectedType;
+                        statusEl.className = 'status-info';
+                        statusEl.textContent = `Вы выбрали '${userSelectedType}', но файл определен как '${detectedType}'. Автоматически переключаюсь на правильный анализ.`;
+                        document.querySelector('.tab-button.active').classList.remove('active');
+                        document.querySelector(`.tab-button[data-type="${detectedType}"]`).classList.add('active');
+                    } else {
+                         statusEl.textContent = `Файл определен как '${detectedType}'. Запускаю анализ...`;
+                    }
+                    
+                    const analyzer = {'masala': processMasalaFile, 'test': processTestFile, 'dars': processDarsFile}[finalAnalysisType];
+                    if (!analyzer) throw new Error("Не удалось найти подходящий анализатор.");
+                    
+                    analyzer(workbook);
+
+                    setTimeout(() => {
+                        statusEl.className = 'status-success';
+                        statusEl.textContent = 'Анализ успешно завершен!';
+                    }, 1500);
+
+                } catch (error) {
+                    statusEl.className = 'status-error';
+                    statusEl.textContent = `⌛ Ошибка: ${error.message}`;
+                    console.error(error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function formatNumber(val) {
+            if (val === null || val === undefined) return '';
+            const num = Number(val);
+            if (isNaN(num)) return String(val);
+            const roundedNum = parseFloat(num.toFixed(6));
+            return Number.isInteger(roundedNum) ? String(roundedNum) : String(roundedNum);
+        }
+
+        function detectFileType(workbook) {
+            const sheetNames = workbook.SheetNames;
+            try {
+                const someSheetName = sheetNames.find(name => name.toLowerCase().includes('javob')) || sheetNames[0];
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[someSheetName], { header: 1, defval: '' });
+                if (jsonData.some(row => row.includes('Dt') && row.includes('Kt'))) return 'masala';
+            } catch (e) {}
+            if (sheetNames.includes('Savol') && sheetNames.includes('Javob')) {
+                const savolJson = XLSX.utils.sheet_to_json(workbook.Sheets['Savol'], { header: 1, defval: '' });
+                const javobJson = XLSX.utils.sheet_to_json(workbook.Sheets['Javob'], { header: 1, defval: '' });
+                const isTestSheet = (sheetData) => {
+                    for(let i = 0; i < sheetData.length - 1; i++) {
+                        const row = sheetData[i], nextRow = sheetData[i+1];
+                        if(!row || !nextRow) continue;
+                        const id = String(row[1] || '').trim();
+                        const nextId = String(nextRow[1] || '').trim();
+                        if (!isNaN(parseInt(id)) && /^[a-zA-Z]/.test(id) === false && nextId === 'A') return true;
+                        if (!isNaN(parseInt(id)) && ['A','B','C','D'].includes(String(row[3] || '').trim())) return true;
+                    }
+                    return false;
+                };
+                if (isTestSheet(savolJson) || isTestSheet(javobJson)) return 'test';
+                return 'dars';
+            }
+            return 'unknown';
+        }
+
+        function processTestFile(workbook) {
+            if (!workbook.SheetNames.includes('Javob')) {
+                throw new Error("Для анализа Теста необходим лист 'Javob' с ответами.");
+            }
+            
+            const javobSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Javob'], { header: 1, defval: '' });
+
+            console.log('Лист Javob:', javobSheet.slice(0, 30));
+
+            // Извлекаем все ответы из листа Javob
+            const answers = [];
+            javobSheet.forEach((row, idx) => {
+                if (!row || row.length === 0) return;
+                
+                const col1 = String(row[1] || '').trim();
+                const col3 = String(row[3] || '').trim();
+                
+                // Проверяем, что это номер вопроса и есть ответ
+                if (/^\d+$/.test(col1) && ['A', 'B', 'C', 'D'].includes(col3)) {
+                    const num = parseInt(col1);
+                    answers.push({ number: num, answer: col3 });
+                    console.log(`Вопрос ${num}: Ответ ${col3}`);
+                }
+            });
+
+            console.log('Найдено ответов:', answers.length);
+
+            if (answers.length === 0) {
+                throw new Error("Не удалось извлечь ни одного ответа. Убедитесь, что это файл типа 'Test'.");
+            }
+            
+            // Сортируем по номеру вопроса
+            answers.sort((a, b) => a.number - b.number);
+            
+            // Формируем HTML - простая таблица с ответами
+            let html = `<div class="task-container">
+                <div class="task-title">ОТВЕТЫ НА ТЕСТ</div>
+                <p style="text-align: center; color: var(--secondary-text); margin-bottom: 20px;">
+                    Всего вопросов: ${answers.length}
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">№ Вопроса</th>
+                            <th style="width: 100px;">Ответ</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
+            answers.forEach(item => {
+                html += `<tr>
+                    <td style="text-align: center; font-weight: 600;">${item.number}</td>
+                    <td class="answer-letter" style="font-size: 1.2em;">${item.answer}</td>
+                </tr>`;
+            });
+            
+            html += `</tbody></table></div>`;
+            
+            // Добавляем строку со всеми ответами подряд
+            const allAnswers = answers.map(a => a.answer).join(' ');
+            html += `<div class="task-container">
+                <div class="task-title">ВСЕ ОТВЕТЫ ПОДРЯД</div>
+                <p style="font-size: 1.3em; text-align: center; letter-spacing: 3px; font-weight: 600; color: var(--success-color); padding: 20px; background: rgba(255,255,255,0.6); border-radius: 10px;">
+                    ${allAnswers}
+                </p>
+            </div>`;
+            
+            document.getElementById('output').innerHTML = html;
+        }
+        
+        function processDarsFile(workbook) {
+            if (!workbook.SheetNames.includes('Savol') || !workbook.SheetNames.includes('Javob')) { throw new Error("Для анализа Задач (Dars) необходимы листы 'Savol' и 'Javob'."); }
+            const savolSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Savol'], { header: 1, defval: null });
+            const javobSheet = XLSX.utils.sheet_to_json(workbook.Sheets['Javob'], { header: 1, defval: null });
+            let allTasks = [], currentTask = [];
+            savolSheet.forEach((row, index) => {
+                if(!row) return;
+                const qNum = parseInt(String(row[1] || '').trim());
+                if (isNaN(qNum)) { if (row.every(c => c === null) && currentTask.length > 0) { allTasks.push(currentTask); currentTask = []; } return; }
+                if (qNum === 1 && currentTask.length > 0) { allTasks.push(currentTask); currentTask = []; }
+                const answerRowIndex = index + 1;
+                const rawAnswer = (javobSheet[answerRowIndex] && javobSheet[answerRowIndex][3]) || null;
+                let finalAnswer = rawAnswer;
+                if (rawAnswer !== null) { const num = parseFloat(String(rawAnswer).replace(',', '.').replace(/\s/g, '')); finalAnswer = isNaN(num) ? String(rawAnswer) : num; }
+                currentTask.push({ '№': qNum, 'Savol': row[2] || '', 'Javobi': finalAnswer });
+            });
+            if (currentTask.length > 0) allTasks.push(currentTask);
+            if (allTasks.length === 0) throw new Error("Не удалось извлечь ни одной задачи. Убедитесь, что это файл типа 'Dars'.");
+            let html = '';
+            allTasks.forEach((task, i) => {
+                html += `<div class="task-container"><div class="task-title">MASALA ${i + 1}</div><table><thead><tr><th>№</th><th>Savol</th><th>Javobi</th></tr></thead><tbody>`;
+                task.forEach(item => { html += `<tr><td>${item['№']}</td><td>${item['Savol']}</td><td class="answer-cell">${formatNumber(item['Javobi'])}</td></tr>`; });
+                html += `</tbody></table></div>`;
+            });
+            document.getElementById('output').innerHTML = html;
+        }
+        
+        function processMasalaFile(workbook) {
+            if (!workbook.SheetNames.includes('Javob')) { throw new Error("Для анализа Бухгалтерии (Masala) необходим лист 'Javob'."); }
+            const rawData = XLSX.utils.sheet_to_json(workbook.Sheets['Javob'], { header: 1, defval: null });
+            let transactions = [], balans = [], taskMarkers = {};
+            rawData.forEach((row, r) => { (row && row[1] || '').toString().endsWith('-masala') && (taskMarkers[row[1].trim()] = r); });
+            if (Object.keys(taskMarkers).length === 0) throw new Error("Не удалось найти ни одной задачи '-masala'. Убедитесь, что это файл типа 'Masala'.");
+            const balansHeaders = [];
+            rawData.forEach((row, r) => { row && row.includes('Aktiv') && balansHeaders.push({ row: r, col: row.indexOf('Aktiv'), task: '' }); });
+            const sortedTasks = Object.entries(taskMarkers).sort((a,b) => a[1]-b[1]);
+            balansHeaders.forEach(h => { h.task = sortedTasks.filter(([name, start]) => h.row >= start).pop()?.[0] || ''; });
+            rawData.forEach((row, r) => {
+                if(!row) return;
+                const task = sortedTasks.filter(([name, start]) => r >= start).pop()?.[0] || '';
+                let savol = (row.slice(1,9).filter(c => c !== null && isNaN(c)).join(' ')).trim();
+                if (savol.includes('-masala')) return;
+                const words = savol.split(' ');
+                if (words.length > 1 && words.length % 2 === 0) { const half = words.length / 2; if (words.slice(0, half).join(' ') === words.slice(half).join(' ')) savol = words.slice(0, half).join(' '); }
+                const dt = parseFloat(row[10]), kt = parseFloat(row[11]);
+                const summa = parseFloat(String(row[12]).replace(/\s/g,'').replace(',','.'));
+                if (savol || [dt,kt,summa].some(v => !isNaN(v))) transactions.push({ Task: task, Savol: savol, Dt: dt, Kt: kt, Summa: summa });
+            });
+            balansHeaders.forEach(h => {
+                for (let i = h.row + 1; i < rawData.length; i++) {
+                    const row = rawData[i];
+                    if (!row || row.slice(h.col, h.col+4).every(c => c === null)) break;
+                    balans.push({ Task: h.task, Aktiv: row[h.col], Aktiv_Summa: row[h.col+1], Passiv: row[h.col+2], Passiv_Summa: row[h.col+3] });
+                    if (String(row[h.col]).trim() === 'Jami') break;
+                }
+            });
+            let html = '';
+            Object.keys(taskMarkers).sort((a,b)=>parseInt(a.split('-')[0])-parseInt(b.split('-')[0])).forEach(taskName => {
+                html += `<div class="task-container"><div class="task-title">${taskName.toUpperCase()}</div>`;
+                const taskTrans = transactions.filter(t => t.Task === taskName);
+                if(taskTrans.length > 0) {
+                    html += `<h3>Таблица Транзакций</h3><table><thead><tr><th>Savol</th><th>Dt</th><th>Kt</th><th>Summa</th></tr></thead><tbody>`;
+                    taskTrans.forEach(t => { html += `<tr><td>${t.Savol||''}</td><td>${formatNumber(t.Dt)}</td><td>${formatNumber(t.Kt)}</td><td>${formatNumber(t.Summa)}</td></tr>`; });
+                    html += `</tbody></table>`;
+                }
+                const taskBalans = balans.filter(b => b.Task === taskName);
+                if(taskBalans.length > 0) {
+                    html += `<h3>Таблица Баланса</h3><table><thead><tr><th>Aktiv</th><th>Summa</th><th>Passiv</th><th>Summa</th></tr></thead><tbody>`;
+                    taskBalans.forEach(b => { html += `<tr><td>${formatNumber(b.Aktiv)}</td><td>${formatNumber(b.Aktiv_Summa)}</td><td>${formatNumber(b.Passiv)}</td><td>${formatNumber(b.Passiv_Summa)}</td></tr>`; });
+                    html += `</tbody></table>`;
+                }
+                html += `</div>`;
+            });
+            document.getElementById('output').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
