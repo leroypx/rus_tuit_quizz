@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Редактор тестов</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <style>
+    .edit-modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .edit-modal-grid { grid-template-columns: 1fr; } }
+    .type-tag { display:inline-block; padding:1px 8px; border-radius:4px; font-size:0.72rem;
+                font-weight:600; background:var(--surface2); border:1px solid var(--border); }
+    /* Tab panels take full remaining height */
+    #tab-questions { height: 100%; display: flex; flex-direction: column; }
+    #tab-questions .editor-table-wrap { flex: 1; }
+    .tab-panel.active#tab-questions { display: flex; }
+  </style>
+</head>
+<body class="page-editor">
+<div class="app">
+
+  <!-- Header -->
+  <header class="app-header">
+    <a href="index.html" class="logo">
+      <img src="assets/logo.png" alt="QuizPlatform" class="logo-img" draggable="false" onerror="this.style.display='none'">
+    </a>
+    <span class="header-spacer"></span>
+    <span id="loaded-name" class="text-sm text-muted" style="margin-right:8px;"></span>
+    <button id="theme-toggle" class="btn-icon" title="Сменить тему"></button>
+  </header>
+
+  <!-- Editor toolbar (sticky, full-width) -->
+  <div class="editor-toolbar" id="editor-toolbar">
+    <!-- Subject & import -->
+    <select id="subject-select" style="width:auto;max-width:200px;padding:5px 10px;font-size:0.8125rem;">
+      <option value="">— предмет —</option>
+    </select>
+    <button class="btn btn-secondary btn-sm" id="import-btn" title="Загрузить XLSX или JSON">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Импорт
+    </button>
+    <input type="file" id="import-file" accept=".xlsx,.json" class="hidden">
+
+    <!-- Divider -->
+    <div class="toolbar-divider" style="width:1px;height:22px;background:var(--border);flex-shrink:0;"></div>
+
+    <!-- Tab buttons (always visible) -->
+    <div class="toolbar-tabs">
+      <button class="tab-btn active" data-tab="tab-questions">Вопросы</button>
+      <button class="tab-btn" data-tab="tab-io">Импорт / Экспорт</button>
+      <button class="tab-btn" data-tab="tab-help">Справка</button>
+    </div>
+
+    <!-- Stats chip (shown when questions loaded) -->
+    <span id="stat-chip" class="badge hidden" style="background:var(--surface2);color:var(--text-2);border:1px solid var(--border);text-transform:none;font-size:0.78rem;font-weight:500;letter-spacing:0;">0 вопросов</span>
+
+    <div class="toolbar-spacer"></div>
+
+    <!-- Questions-tab-only controls -->
+    <div id="questions-controls" class="hidden" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <!-- View toggle -->
+      <button class="btn btn-secondary btn-sm" id="view-table-btn" title="Таблица">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-sm" id="view-preview-btn" title="Превью">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </button>
+      <div style="width:1px;height:20px;background:var(--border);flex-shrink:0;"></div>
+      <select id="sort-select" style="width:auto;padding:4px 8px;font-size:0.8rem;">
+        <option value="original">Порядок</option>
+        <option value="id">По ID</option>
+        <option value="type">По типу</option>
+      </select>
+      <select id="filter-type" style="width:auto;padding:4px 8px;font-size:0.8rem;">
+        <option value="">Все типы</option>
+      </select>
+      <input type="text" id="search-input" placeholder="Поиск..." style="width:130px;padding:4px 8px;font-size:0.8rem;">
+      <button class="btn btn-primary btn-sm" id="add-question-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Добавить
+      </button>
+    </div>
+  </div>
+
+  <!-- Main: tab content -->
+  <main class="app-main" style="padding:0;overflow:hidden;">
+
+    <!-- Empty state (before any subject loaded) -->
+    <div id="empty-state" class="empty-state" style="height:calc(100vh - 54px - 52px);">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      <p>Выберите предмет из списка или нажмите «Импорт»</p>
+    </div>
+
+    <!-- Tab panels -->
+    <div id="editor-area" class="hidden" style="height:calc(100vh - 54px - 52px);display:flex;flex-direction:column;">
+
+      <!-- ====== TAB: QUESTIONS ====== -->
+      <div class="tab-panel" id="tab-questions" style="flex:1;overflow:hidden;display:none;flex-direction:column;">
+
+        <!-- Table view -->
+        <div id="view-table" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+          <div class="editor-table-wrap" style="flex:1;">
+            <table id="questions-table">
+              <thead>
+                <tr>
+                  <th style="width:64px;" data-sort="id">#</th>
+                  <th data-sort="question">Вопрос</th>
+                  <th style="width:80px;" data-sort="type">Тип</th>
+                  <th style="width:54px;">Ответ</th>
+                  <th style="width:72px;"></th>
+                </tr>
+              </thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+          <div id="table-empty" class="empty-state hidden" style="padding:32px;"><p>Нет вопросов по фильтру</p></div>
+        </div>
+
+        <!-- Preview view -->
+        <div id="view-preview" class="hidden" style="flex:1;overflow-y:auto;padding:16px 20px;">
+          <div id="preview-list"></div>
+          <div id="preview-empty" class="empty-state hidden"><p>Нет вопросов по фильтру</p></div>
+        </div>
+      </div>
+
+      <!-- ====== TAB: IMPORT / EXPORT ====== -->
+      <div class="tab-panel" id="tab-io" style="flex:1;overflow-y:auto;padding:20px 24px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:24px;max-width:100%;">
+
+          <!-- Import -->
+          <div>
+            <h2 class="mb-3">Импорт</h2>
+            <div class="drop-zone" id="io-drop-zone">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 10px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <p>Перетащите XLSX или JSON файл сюда</p>
+              <p class="text-sm text-muted mt-2">или</p>
+              <button class="btn btn-secondary btn-sm mt-2" id="io-browse-btn">Выбрать файл</button>
+              <input type="file" id="io-file" accept=".xlsx,.json" class="hidden">
+            </div>
+            <div id="io-preview" class="hidden card card-sm mt-3">
+              <p class="text-sm"><strong id="io-preview-count">0</strong> вопросов найдено</p>
+              <div class="flex gap-2 mt-3">
+                <button class="btn btn-primary btn-sm" id="io-confirm-btn">Загрузить</button>
+                <button class="btn btn-ghost btn-sm"   id="io-cancel-btn">Отмена</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Export -->
+          <div>
+            <h2 class="mb-3">Экспорт</h2>
+            <div class="card card-sm">
+              <div class="form-row">
+                <label>Имя файла</label>
+                <input type="text" id="export-filename" value="questions.xlsx">
+              </div>
+              <button class="btn btn-primary btn-sm w-full mt-2" id="export-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Скачать XLSX
+              </button>
+              <p class="text-xs text-muted mt-2">Текущий набор вопросов с ID</p>
+            </div>
+          </div>
+
+          <!-- AI prompt -->
+          <div>
+            <h2 class="mb-3">Промпт для ИИ</h2>
+            <div class="card card-sm">
+                  <div class="prompt-block" id="ai-prompt-text"></div>
+                  <button class="btn btn-secondary btn-sm prompt-copy-btn" id="copy-prompt-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Скопировать
+                  </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== TAB: HELP ====== -->
+      <div class="tab-panel" id="tab-help" style="flex:1;overflow-y:auto;padding:20px 24px;">
+        <div style="max-width:1400px;">
+          <h2 class="mb-4">Как пользоваться редактором</h2>
+          <div class="help-steps" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:24px;">
+            <div class="help-step">
+              <div class="step-num">1</div>
+              <div class="step-body">
+                <h3>Загрузите предмет</h3>
+                <p>Выберите предмет из выпадающего списка в тулбаре или нажмите «Импорт», чтобы загрузить свой JSON-файл. Поддерживаются файлы, экспортированные с этой платформы, или любой JSON в совместимом формате.</p>
+              </div>
+            </div>
+            <div class="help-step">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <h3>Просмотр и редактирование</h3>
+                <p>Во вкладке «Вопросы» переключайтесь между таблицей и превью. В таблице нажмите карандаш для редактирования вопроса. В превью виден финальный вид с KaTeX и изображениями. Используйте сортировку, фильтр по типу и поиск.</p>
+              </div>
+            </div>
+            <div class="help-step">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <h3>Экспорт и использование</h3>
+                <p>После редактирования перейдите во «Импорт / Экспорт» и нажмите «Скачать JSON». Файл можно загрузить на страницах теста через «Импорт». На GitHub Pages файлы в <code>data/</code> доступны напрямую.</p>
+              </div>
+            </div>
+            <div class="help-step">
+              <div class="step-num">4</div>
+              <div class="step-body">
+                <h3>Формат JSON</h3>
+                <p>Каждый вопрос — объект с полями:</p>
+                <pre class="selectable" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:0.8rem;margin-top:8px;overflow-x:auto;">{
+  "id": "q001",
+  "Вопрос": "Текст, $LaTeX$ или &lt;img src='url'&gt;",
+  "A": "Вариант A",
+  "B": "Вариант B",
+  "C": "Вариант C",
+  "D": "Вариант D",
+  "Правильный ответ": "A",
+  "Тип вопроса": "1"
+}</pre>
+                <p class="mt-2">Поле <code>id</code> используется для отслеживания прогресса. LaTeX: <code>$формула$</code> или <code>$$формула$$</code>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /editor-area -->
+  </main>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-backdrop hidden" id="edit-modal">
+  <div class="modal" style="max-width:820px;">
+    <div class="modal-header">
+      <h2 id="modal-title">Редактировать вопрос</h2>
+      <button class="btn btn-ghost btn-icon" id="modal-close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="edit-modal-grid">
+        <div>
+          <div class="form-row">
+            <label>ID</label>
+            <input type="text" id="field-id" placeholder="q001">
+          </div>
+          <div class="form-row">
+            <label>Тип вопроса</label>
+            <input type="text" id="field-type" placeholder="1">
+          </div>
+          <div class="form-row">
+            <label>Вопрос</label>
+            <textarea id="field-question" rows="4" placeholder="Текст, $LaTeX$ или <img src='url'>"></textarea>
+          </div>
+          <div class="form-grid">
+            <div class="form-row"><label>A</label><textarea id="field-a" rows="2"></textarea></div>
+            <div class="form-row"><label>B</label><textarea id="field-b" rows="2"></textarea></div>
+            <div class="form-row"><label>C</label><textarea id="field-c" rows="2"></textarea></div>
+            <div class="form-row"><label>D</label><textarea id="field-d" rows="2"></textarea></div>
+          </div>
+          <div class="form-row">
+            <label>Правильный ответ</label>
+            <select id="field-answer">
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Превью</label>
+          <div class="preview-pane" id="modal-preview">
+            <div class="question-text selectable" id="preview-question" style="margin-bottom:12px;"></div>
+            <div id="preview-opts" class="preview-options"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"   id="modal-cancel">Отмена</button>
+      <button class="btn btn-primary" id="modal-save">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal-backdrop hidden" id="delete-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header"><h2>Удалить вопрос?</h2></div>
+    <div class="modal-body"><p class="text-muted">Это действие нельзя отменить.</p></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"  id="delete-cancel">Отмена</button>
+      <button class="btn btn-danger" id="delete-confirm">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="assets/quiz.js"></script>
+<script>
+/* ============================================================
+   State
+============================================================ */
+let questions = [];
+let filteredQuestions = [];
+let editingIndex  = null;
+let deletingIndex = null;
+let currentView   = 'table';
+let ioImportData  = null;
+let activeTab     = 'tab-questions';
+
+const AI_PROMPT = `Преобразуй следующий учебный материал в массив JSON-объектов для платформы тестирования.
+
+Каждый объект должен содержать поля:
+- "id": уникальный короткий ключ, например "q001"
+- "Вопрос": текст вопроса (можно использовать $LaTeX$ для формул)
+- "A", "B", "C", "D": варианты ответов
+- "Правильный ответ": одна буква "A", "B", "C" или "D"
+- "Тип вопроса": номер или категория вопроса (строка)
+
+Важно:
+- Верни только валидный JSON-массив без пояснений
+- Для математических формул используй LaTeX: $формула$ или $$формула$$
+- Если варианты ответов содержат формулы, оберни их в $...$
+- Убедись что каждый вопрос имеет ровно 4 варианта
+
+Входные данные:
+[ВСТАВЬ МАТЕРИАЛ ЗДЕСЬ]`;
+
+/* ============================================================
+   Init
+============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
+  QuizUtils.initTheme();
+
+  document.getElementById('ai-prompt-text').textContent = AI_PROMPT;
+
+  // Load subjects
+  try {
+    const manifest = await QuizUtils.loadManifest();
+    const select = document.getElementById('subject-select');
+    manifest.subjects.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name + (s.type === 'math' ? ' [Math]' : '');
+      opt.dataset.file = s.file;
+      opt.dataset.name = s.name;
+      select.appendChild(opt);
+    });
+  } catch (e) { console.warn('manifest failed', e); }
+
+  // Toolbar tab switching
+  document.querySelectorAll('.editor-toolbar .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // Subject & import
+  document.getElementById('subject-select').addEventListener('change', loadFromSelect);
+  document.getElementById('import-btn').addEventListener('click', () => document.getElementById('import-file').click());
+  document.getElementById('import-file').addEventListener('change', handleSidebarImport);
+
+  // View toggles
+  document.getElementById('view-table-btn').addEventListener('click', () => setView('table'));
+  document.getElementById('view-preview-btn').addEventListener('click', () => setView('preview'));
+
+  // Filters
+  document.getElementById('sort-select').addEventListener('change', applyFilters);
+  document.getElementById('filter-type').addEventListener('change', applyFilters);
+  document.getElementById('search-input').addEventListener('input', applyFilters);
+  document.getElementById('add-question-btn').addEventListener('click', openAddModal);
+
+  // Modal events
+  document.getElementById('modal-close').addEventListener('click', closeEditModal);
+  document.getElementById('modal-cancel').addEventListener('click', closeEditModal);
+  document.getElementById('modal-save').addEventListener('click', saveQuestion);
+  document.getElementById('delete-cancel').addEventListener('click', () => document.getElementById('delete-modal').classList.add('hidden'));
+  document.getElementById('delete-confirm').addEventListener('click', confirmDelete);
+
+  // Live preview in edit modal
+  ['field-question','field-a','field-b','field-c','field-d','field-answer'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateModalPreview);
+  });
+
+  // Table sort headers
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      document.getElementById('sort-select').value =
+        th.dataset.sort === 'id' ? 'id' : th.dataset.sort === 'type' ? 'type' : 'original';
+      applyFilters();
+    });
+  });
+
+  // IO tab
+  document.getElementById('io-browse-btn').addEventListener('click', () => document.getElementById('io-file').click());
+  document.getElementById('io-file').addEventListener('change', handleIOImport);
+  document.getElementById('io-confirm-btn').addEventListener('click', confirmIOImport);
+  document.getElementById('io-cancel-btn').addEventListener('click', () => {
+    document.getElementById('io-preview').classList.add('hidden');
+    ioImportData = null;
+  });
+  document.getElementById('export-btn').addEventListener('click', exportXLSX);
+  document.getElementById('copy-prompt-btn').addEventListener('click', copyPrompt);
+
+  // Drag & drop
+  const dropZone = document.getElementById('io-drop-zone');
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) processImportFile(file, 'io');
+  });
+
+  // Modal backdrop close
+  document.getElementById('edit-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('edit-modal')) closeEditModal();
+  });
+  document.getElementById('delete-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('delete-modal')) document.getElementById('delete-modal').classList.add('hidden');
+  });
+
+  // Activate first tab
+  switchTab('tab-questions');
+});
+
+/* ============================================================
+   Tab switching
+============================================================ */
+function switchTab(tabId) {
+  activeTab = tabId;
+
+  document.querySelectorAll('.editor-toolbar .tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabId);
+  });
+  document.querySelectorAll('#editor-area .tab-panel').forEach(panel => {
+    const isActive = panel.id === tabId;
+    panel.style.display = isActive ? (tabId === 'tab-questions' ? 'flex' : 'block') : 'none';
+  });
+
+  const qControls = document.getElementById('questions-controls');
+  if (tabId === 'tab-questions') {
+    qControls.classList.remove('hidden');
+    qControls.style.display = 'flex';
+  } else {
+    qControls.classList.add('hidden');
+    qControls.style.display = 'none';
+  }
+}
+
+/* ============================================================
+   Load questions
+============================================================ */
+async function loadFromSelect() {
+  const select = document.getElementById('subject-select');
+  const opt = select.options[select.selectedIndex];
+  if (!opt || !opt.dataset.file) return;
+  try {
+    const data = await QuizUtils.loadQuestions(opt.dataset.file);
+    setQuestions(data, opt.dataset.name || opt.textContent);
+  } catch (e) {
+    QuizUtils.toast('Ошибка загрузки', 'danger');
+  }
+}
+
+function handleSidebarImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  processImportFile(file, 'sidebar');
+  e.target.value = '';
+}
+
+function handleIOImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  processImportFile(file, 'io');
+  e.target.value = '';
+}
+
+async function processImportFile(file, source) {
+  try {
+    let arr;
+    if (file.name.endsWith('.xlsx')) {
+      const buf = await file.arrayBuffer();
+      const wb  = XLSX.read(buf);
+      const ws  = wb.Sheets[wb.SheetNames[0]];
+      arr = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    } else {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      arr = Array.isArray(data) ? data : (data.questions || []);
+    }
+    const name = file.name.replace(/\.(xlsx|json)$/i, '');
+    if (source === 'sidebar') {
+      setQuestions(arr, name);
+      document.getElementById('subject-select').value = '';
+    } else {
+      ioImportData = arr;
+      document.getElementById('io-preview-count').textContent = arr.length;
+      document.getElementById('io-preview').classList.remove('hidden');
+    }
+  } catch (err) {
+    QuizUtils.toast('Ошибка при открытии файла', 'danger');
+  }
+}
+
+function confirmIOImport() {
+  if (!ioImportData) return;
+  setQuestions(ioImportData, 'Импорт');
+  ioImportData = null;
+  document.getElementById('io-preview').classList.add('hidden');
+  switchTab('tab-questions');
+}
+
+function setQuestions(data, name) {
+  questions = data.map((q, i) => ({
+    id: q.id || `q${String(i + 1).padStart(3, '0')}`,
+    ...q,
+  }));
+
+  document.getElementById('loaded-name').textContent = name || '';
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('editor-area').classList.remove('hidden');
+
+  updateStatChip();
+  updateFilterOptions();
+  applyFilters();
+
+  if (name) document.getElementById('export-filename').value = name.replace(/\s+/g,'_').toLowerCase() + '.xlsx';
+  QuizUtils.toast(`Загружено ${questions.length} вопросов`, 'success');
+}
+
+function updateStatChip() {
+  const chip = document.getElementById('stat-chip');
+  chip.classList.remove('hidden');
+  const types = [...new Set(questions.map(q => q['Тип вопроса']).filter(Boolean))];
+  chip.textContent = `${questions.length} вопросов${types.length ? ' · ' + types.length + ' типов' : ''}`;
+}
+
+function updateFilterOptions() {
+  const types = [...new Set(questions.map(q => q['Тип вопроса']).filter(Boolean))].sort((a,b) => {
+    const na=parseInt(a),nb=parseInt(b);
+    return isNaN(na)||isNaN(nb)?String(a).localeCompare(String(b)):na-nb;
+  });
+  const sel = document.getElementById('filter-type');
+  sel.innerHTML = '<option value="">Все типы</option>';
+  types.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = `Тип ${t}`;
+    sel.appendChild(opt);
+  });
+}
+
+/* ============================================================
+   Filtering & Sorting
+============================================================ */
+function applyFilters() {
+  const sortVal    = document.getElementById('sort-select').value;
+  const filterType = document.getElementById('filter-type').value;
+  const search     = document.getElementById('search-input').value.toLowerCase().trim();
+
+  let result = [...questions];
+  if (filterType) result = result.filter(q => q['Тип вопроса'] === filterType);
+  if (search) {
+    result = result.filter(q => {
+      const text = String(q['Вопрос'] || '').replace(/<[^>]+>/g,'').toLowerCase();
+      return text.includes(search) || String(q.id || '').toLowerCase().includes(search);
+    });
+  }
+
+  if (sortVal === 'id') {
+    result.sort((a, b) => String(a.id||'').localeCompare(String(b.id||''), undefined, {numeric: true}));
+  } else if (sortVal === 'type') {
+    result.sort((a, b) => {
+      const ta=a['Тип вопроса']||'', tb=b['Тип вопроса']||'';
+      const na=parseInt(ta), nb=parseInt(tb);
+      return isNaN(na)||isNaN(nb)?String(ta).localeCompare(String(tb)):na-nb;
+    });
+  }
+
+  filteredQuestions = result;
+  renderCurrentView();
+}
+
+/* ============================================================
+   Views
+============================================================ */
+function setView(view) {
+  currentView = view;
+  const tableEl   = document.getElementById('view-table');
+  const previewEl = document.getElementById('view-preview');
+  previewEl.classList.remove('hidden');
+  tableEl.style.display   = view === 'table'   ? 'flex'  : 'none';
+  previewEl.style.display = view === 'preview' ? 'block' : 'none';
+  document.getElementById('view-table-btn').className   = 'btn btn-sm ' + (view === 'table'   ? 'btn-secondary' : 'btn-ghost');
+  document.getElementById('view-preview-btn').className = 'btn btn-sm ' + (view === 'preview' ? 'btn-secondary' : 'btn-ghost');
+  renderCurrentView();
+}
+
+function renderCurrentView() {
+  if (currentView === 'table') renderTable();
+  else renderPreview();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('table-empty');
+  tbody.innerHTML = '';
+
+  if (!filteredQuestions.length) { empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  filteredQuestions.forEach(q => {
+    const realIdx = questions.indexOf(q);
+    const qText   = String(q['Вопрос'] || '').replace(/<[^>]+>/g, '').trim();
+    const preview = qText.length > 80 ? qText.slice(0, 80) + '…' : qText || '(изображение)';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="text-faint text-xs" style="font-family:monospace;">${q.id || ''}</span></td>
+      <td class="td-truncate selectable" title="${qText.replace(/"/g,'&quot;')}">${preview}</td>
+      <td>${q['Тип вопроса'] ? `<span class="type-tag">${q['Тип вопроса']}</span>` : ''}</td>
+      <td><strong>${q['Правильный ответ'] || ''}</strong></td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-icon btn-sm edit-btn" data-idx="${realIdx}" title="Редактировать">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-ghost btn-icon btn-sm delete-btn" data-idx="${realIdx}" title="Удалить" style="color:var(--danger);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('.edit-btn').forEach(btn =>
+    btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.idx))));
+  tbody.querySelectorAll('.delete-btn').forEach(btn =>
+    btn.addEventListener('click', () => openDeleteModal(parseInt(btn.dataset.idx))));
+}
+
+function renderPreview() {
+  const list  = document.getElementById('preview-list');
+  const empty = document.getElementById('preview-empty');
+  list.innerHTML = '';
+
+  if (!filteredQuestions.length) { empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  filteredQuestions.forEach(q => {
+    const realIdx   = questions.indexOf(q);
+    const correctKey = QuizUtils.normalizeAnswer(q['Правильный ответ']);
+    const keys      = ['A','B','C','D'].filter(k => q[k]);
+
+    const card = document.createElement('div');
+    card.className = 'preview-card';
+
+    const header = document.createElement('div');
+    header.className = 'flex items-center justify-between mb-3';
+    header.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="text-faint text-xs" style="font-family:monospace;">${q.id || ''}</span>
+        ${q['Тип вопроса'] ? `<span class="type-tag">Тип ${q['Тип вопроса']}</span>` : ''}
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-ghost btn-icon btn-sm preview-edit"   data-idx="${realIdx}" title="Редактировать"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn btn-ghost btn-icon btn-sm preview-delete" data-idx="${realIdx}" title="Удалить" style="color:var(--danger);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div>
+    `;
+    card.appendChild(header);
+
+    const qEl = document.createElement('div');
+    qEl.className = 'question-text selectable';
+    QuizUtils.renderContent(qEl, q['Вопрос'] || '');
+    card.appendChild(qEl);
+
+    const optsEl = document.createElement('div');
+    optsEl.className = 'preview-options';
+    keys.forEach(key => {
+      const optEl  = document.createElement('div');
+      optEl.className = 'preview-option' + (key === correctKey ? ' correct-opt' : '');
+      const keyEl  = document.createElement('span');
+      keyEl.style.cssText = 'font-weight:700;min-width:20px;';
+      keyEl.textContent = key;
+      const textEl = document.createElement('span');
+      textEl.className = 'selectable';
+      textEl.style.flex = '1';
+      QuizUtils.renderContent(textEl, q[key] || '');
+      optEl.appendChild(keyEl);
+      optEl.appendChild(textEl);
+      optsEl.appendChild(optEl);
+    });
+    card.appendChild(optsEl);
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll('.preview-edit').forEach(btn =>
+    btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.idx))));
+  list.querySelectorAll('.preview-delete').forEach(btn =>
+    btn.addEventListener('click', () => openDeleteModal(parseInt(btn.dataset.idx))));
+}
+
+/* ============================================================
+   Edit Modal
+============================================================ */
+function openAddModal() {
+  editingIndex = null;
+  document.getElementById('modal-title').textContent = 'Новый вопрос';
+  const ids    = questions.map(q => q.id).filter(id => /^q\d+$/.test(id));
+  const maxNum = ids.reduce((max, id) => Math.max(max, parseInt(id.slice(1)) || 0), 0);
+  document.getElementById('field-id').value       = `q${String(maxNum + 1).padStart(3, '0')}`;
+  document.getElementById('field-type').value     = '';
+  document.getElementById('field-question').value = '';
+  document.getElementById('field-a').value = '';
+  document.getElementById('field-b').value = '';
+  document.getElementById('field-c').value = '';
+  document.getElementById('field-d').value = '';
+  document.getElementById('field-answer').value = 'A';
+  updateModalPreview();
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+function openEditModal(idx) {
+  editingIndex = idx;
+  const q = questions[idx];
+  document.getElementById('modal-title').textContent  = `Вопрос ${q.id || '#' + (idx + 1)}`;
+  document.getElementById('field-id').value           = q.id || '';
+  document.getElementById('field-type').value         = q['Тип вопроса'] || '';
+  document.getElementById('field-question').value     = q['Вопрос'] || '';
+  document.getElementById('field-a').value            = q['A'] || '';
+  document.getElementById('field-b').value            = q['B'] || '';
+  document.getElementById('field-c').value            = q['C'] || '';
+  document.getElementById('field-d').value            = q['D'] || '';
+  document.getElementById('field-answer').value       = QuizUtils.normalizeAnswer(q['Правильный ответ']) || 'A';
+  updateModalPreview();
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.add('hidden');
+  editingIndex = null;
+}
+
+function updateModalPreview() {
+  const qText  = document.getElementById('field-question').value;
+  const answer = document.getElementById('field-answer').value;
+  QuizUtils.renderContent(document.getElementById('preview-question'), qText);
+  const opts = document.getElementById('preview-opts');
+  opts.innerHTML = '';
+  ['A','B','C','D'].forEach(key => {
+    const text = document.getElementById('field-' + key.toLowerCase()).value;
+    if (!text) return;
+    const el    = document.createElement('div');
+    el.className = 'preview-option' + (key === answer ? ' correct-opt' : '');
+    const keyEl  = document.createElement('span');
+    keyEl.style.cssText = 'font-weight:700;min-width:20px;';
+    keyEl.textContent = key;
+    const valEl  = document.createElement('span');
+    valEl.className = 'selectable';
+    valEl.style.flex = '1';
+    QuizUtils.renderContent(valEl, text);
+    el.appendChild(keyEl);
+    el.appendChild(valEl);
+    opts.appendChild(el);
+  });
+}
+
+function saveQuestion() {
+  const newQ = {
+    id: document.getElementById('field-id').value.trim(),
+    'Вопрос':           document.getElementById('field-question').value,
+    'A':                document.getElementById('field-a').value,
+    'B':                document.getElementById('field-b').value,
+    'C':                document.getElementById('field-c').value,
+    'D':                document.getElementById('field-d').value,
+    'Правильный ответ': document.getElementById('field-answer').value,
+    'Тип вопроса':      document.getElementById('field-type').value.trim(),
+  };
+  if (!newQ['Вопрос'] || !newQ['A'] || !newQ['B'] || !newQ['C'] || !newQ['D'] || !newQ['Правильный ответ']) {
+    QuizUtils.toast('Заполните вопрос, все варианты A–D и правильный ответ', 'danger');
+    return;
+  }
+  if (editingIndex !== null) questions[editingIndex] = newQ;
+  else questions.push(newQ);
+  closeEditModal();
+  updateStatChip();
+  updateFilterOptions();
+  applyFilters();
+  QuizUtils.toast(editingIndex !== null ? 'Вопрос обновлён' : 'Вопрос добавлен', 'success');
+}
+
+/* ============================================================
+   Delete Modal
+============================================================ */
+function openDeleteModal(idx) {
+  deletingIndex = idx;
+  document.getElementById('delete-modal').classList.remove('hidden');
+}
+
+function confirmDelete() {
+  if (deletingIndex === null) return;
+  questions.splice(deletingIndex, 1);
+  deletingIndex = null;
+  document.getElementById('delete-modal').classList.add('hidden');
+  updateStatChip();
+  updateFilterOptions();
+  applyFilters();
+  QuizUtils.toast('Вопрос удалён', 'success');
+}
+
+/* ============================================================
+   Export
+============================================================ */
+function exportXLSX() {
+  if (!questions.length) { QuizUtils.toast('Нет вопросов для экспорта', 'danger'); return; }
+  let filename = document.getElementById('export-filename').value || 'questions';
+  if (!filename.endsWith('.xlsx')) filename += '.xlsx';
+  const ws = XLSX.utils.json_to_sheet(questions);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Вопросы');
+  XLSX.writeFile(wb, filename);
+  QuizUtils.toast('Файл скачан', 'success');
+}
+
+/* ============================================================
+   Copy prompt
+============================================================ */
+async function copyPrompt() {
+  try {
+    await navigator.clipboard.writeText(AI_PROMPT);
+    const btn = document.getElementById('copy-prompt-btn');
+    btn.textContent = 'Скопировано!';
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Скопировать`;
+    }, 2000);
+  } catch (e) {
+    QuizUtils.toast('Не удалось скопировать', 'danger');
+  }
+}
+</script>
+</body>
+</html>

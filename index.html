@@ -1,194 +1,396 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Квизы от @rus_tuit</title>
-    <style>
-        /* --- Основные стили, заимствованные из страниц тестов --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            padding: 20px;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .glass-panel {
-            background: rgba(0, 0, 0, 0.25);
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        }
-        
-        .container {
-            max-width: 800px;
-            width: 100%;
-            margin: 0 auto;
-            overflow: hidden;
-            padding: 40px;
-            text-align: center;
-        }
-        
-        .info-box {
-            border: 3px dashed rgba(255, 255, 255, 0.4);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 40px;
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .info-box h1 {
-            font-size: 2.2em;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .info-box p {
-            font-size: 1.1em;
-            color: #bdc3c7;
-        }
-
-        /* --- Стили для таблицы --- */
-        .quiz-table {
-            width: 100%;
-            border-collapse: collapse; /* Убирает двойные рамки */
-            text-align: left;
-        }
-
-        .quiz-table th, .quiz-table td {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .quiz-table th {
-            font-size: 1.2em;
-            color: #f0f0f0; /* Более светлый цвет для заголовков */
-            font-weight: 600;
-        }
-
-        .quiz-table tr:last-child td {
-            border-bottom: none; /* Убирает границу у последней строки */
-        }
-        
-        .quiz-table td {
-            vertical-align: middle; /* Вертикальное выравнивание по центру */
-            font-size: 1.1em;
-        }
-
-        /* --- Стиль для кнопок-ссылок --- */
-        .btn {
-            display: inline-block; /* Позволяет задать padding и margin */
-            background: rgba(0, 0, 0, 0.2); 
-            color: white; 
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 15px 30px; 
-            border-radius: 25px; 
-            font-size: 16px; 
-            font-weight: bold;
-            cursor: pointer; 
-            transition: all 0.3s ease; 
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-            text-decoration: none; /* Убирает подчеркивание у ссылки */
-            text-align: center;
-            min-width: 180px; /* Чтобы кнопки были одинаковой ширины */
-        }
-
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.1); 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0, 0.2); 
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-        
-        /* --- Стили для мобильных устройств --- */
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .container { padding: 20px; }
-            .info-box h1 { font-size: 1.8em; }
-            
-            /* Адаптация таблицы для маленьких экранов */
-            .quiz-table thead {
-                display: none; /* Скрываем заголовки таблицы */
-            }
-            .quiz-table, .quiz-table tbody, .quiz-table tr, .quiz-table td {
-                display: block;
-                width: 100%;
-            }
-            .quiz-table tr {
-                margin-bottom: 20px;
-                border-radius: 10px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                overflow: hidden;
-            }
-            .quiz-table td {
-                text-align: center;
-                border: none;
-                padding: 15px;
-            }
-            .quiz-table td:first-child {
-                background: rgba(0,0,0,0.2);
-                font-weight: bold;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Platform</title>
+  <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<div style="min-height:100vh;">
 
-    <div class="container glass-panel">
-        <div class="info-box">
-            <h1>Квизы от @rus_tuit</h1>
-            <p>Выберите предмет для начала тестирования</p>
-        </div>
+  <header class="app-header">
+    <a href="index.html" class="logo">
+      <img src="assets/logo.png" alt="QuizPlatform" class="logo-img" draggable="false">
+    </a>
+    <span class="header-spacer"></span>
+    <a href="editor.html" class="btn btn-secondary btn-sm" style="margin-right:4px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Редактор
+    </a>
+    <button id="theme-toggle" class="btn-icon" title="Сменить тему"></button>
+  </header>
 
-        <table class="quiz-table">
-            <thead>
-                <tr>
-                    <th>Предмет</th>
-                    <th>Действие</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Calculus 1</td>
-                    <td>
-                        <a href="https://leroypx.github.io/rus_tuit_quizz/testerCalculus1.html" class="btn">Перейти к тесту</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Calculus 2</td>
-                    <td>
-                        <a href="https://leroypx.github.io/rus_tuit_quizz/testerCalculus2.html" class="btn">Перейти к тесту</a>
-                    </td>
-                </tr>
-                <!-- Вы можете добавить больше строк сюда в будущем -->
-                <!--
-                <tr>
-                    <td>Название предмета</td>
-                    <td>
-                        <a href="ссылка_на_новый_тест.html" class="btn">Перейти к тесту</a>
-                    </td>
-                </tr>
-                -->
-            </tbody>
-        </table>
-        
-        <p style="margin-top: 40px; color: #bdc3c7; font-size: 0.9em;">
-            тестер от @dreamer_px
-        </p>
+  <main class="app-main">
+
+    <!-- Hero -->
+    <div class="index-hero">
+      <h1>Тесты от @rus_tuit</h1>
+      <p>Выберите предмет, настройте параметры и начните тест</p>
     </div>
 
+    <!-- Global Toolbar -->
+    <div class="global-toolbar card" style="padding: 16px 24px; margin-bottom: 40px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between;">
+      
+      <!-- Search -->
+      <div class="search-box" style="flex: 1; min-width: 260px; position: relative;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-subjects" placeholder="Поиск предмета..." style="width: 100%; padding: 10px 12px 10px 40px; background: rgba(34, 34, 59, 0.4); border: 1px solid var(--glass-border); border-radius: var(--radius); color: var(--text); outline: none;">
+      </div>
+
+      <!-- Settings -->
+      <div class="global-settings" style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+        <div class="form-row" style="margin-bottom:0;">
+          <label style="margin-bottom:0; font-size: 0.9rem;">Время (мин)</label>
+          <input type="number" id="global-exam-time" value="60" min="1" max="300" style="width: 80px; padding: 6px 12px;">
+        </div>
+        <label class="checkbox-row" style="margin-bottom:0;">
+          <input type="checkbox" id="global-practice-mode">
+          <span style="font-size: 0.9rem;">Мгновенный ответ</span>
+        </label>
+      </div>
+
+    </div>
+
+    <!-- Loading state -->
+    <div id="subjects-loading" class="empty-state">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <p>Загрузка предметов...</p>
+    </div>
+
+    <!-- Error state -->
+    <div id="subjects-error" class="hidden">
+      <div class="card" style="border-color: var(--danger);">
+        <p class="text-danger">Не удалось загрузить список предметов. Откройте страницу через HTTP-сервер.</p>
+        <p class="text-muted text-sm mt-2">Используйте: <code>python -m http.server 8080</code> или Live Server в VS Code</p>
+      </div>
+    </div>
+
+    <!-- Math subjects -->
+    <div id="subject-grid-math" class="hidden">
+      <h2 class="mb-3" style="display:flex;align-items:center;gap:8px;">
+        <span class="badge badge-math">Math</span>
+        Математика
+      </h2>
+      <div class="subject-grid" id="cards-math"></div>
+    </div>
+
+    <!-- General subjects -->
+    <div id="subject-grid-general" class="hidden mt-6">
+      <h2 class="mb-3" style="display:flex;align-items:center;gap:8px;">
+        <span class="badge badge-general">General</span>
+        Общие предметы
+      </h2>
+      <div class="subject-grid" id="cards-general"></div>
+    </div>
+
+    <!-- History section -->
+    <section class="history-section hidden" id="history-section">
+      <h2 style="display:flex;align-items:center;gap:8px;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.54"/></svg>
+        История тестов
+      </h2>
+      <div id="history-entries" style="margin-top:16px;"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Mobile bottom nav (visible only on ≤768px) -->
+<nav class="bottom-nav">
+  <a href="#subject-grid-math" class="bottom-nav-item">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+    <span>Математика</span>
+  </a>
+  <a href="#subject-grid-general" class="bottom-nav-item">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    <span>Предметы</span>
+  </a>
+  <a href="#history-section" class="bottom-nav-item">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.54"/></svg>
+    <span>История</span>
+  </a>
+  <a href="editor.html" class="bottom-nav-item">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    <span>Редактор</span>
+  </a>
+</nav>
+
+<!-- History modal -->
+<div class="modal-backdrop hidden" id="history-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="history-modal-title">Результаты сессии</h2>
+      <button class="btn btn-ghost btn-sm" id="history-modal-close" style="padding:4px 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="history-modal-body"></div>
+  </div>
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="assets/quiz.js"></script>
+<script>
+let allSubjects = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  QuizUtils.initTheme();
+
+  try {
+    const manifest = await QuizUtils.loadManifest();
+    document.getElementById('subjects-loading').classList.add('hidden');
+    allSubjects = manifest.subjects;
+
+    const math    = manifest.subjects.filter(s => s.type === 'math');
+    const general = manifest.subjects.filter(s => s.type === 'general');
+
+    if (math.length) {
+      document.getElementById('subject-grid-math').classList.remove('hidden');
+      math.forEach(s => renderCard(s, 'cards-math'));
+    }
+    if (general.length) {
+      document.getElementById('subject-grid-general').classList.remove('hidden');
+      general.forEach(s => renderCard(s, 'cards-general'));
+    }
+
+    renderHistorySection(manifest.subjects);
+
+  } catch (e) {
+    document.getElementById('subjects-loading').classList.add('hidden');
+    document.getElementById('subjects-error').classList.remove('hidden');
+  }
+
+  document.getElementById('history-modal-close').addEventListener('click', closeHistoryModal);
+  document.getElementById('history-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeHistoryModal();
+  });
+
+  // Load global settings
+  const gSettings = QuizUtils.loadSettings('global');
+  if (gSettings.time) document.getElementById('global-exam-time').value = gSettings.time;
+  if (gSettings.immFB !== undefined) document.getElementById('global-practice-mode').checked = gSettings.immFB;
+
+  function saveGlobalSettings() {
+    QuizUtils.saveSettings('global', {
+      time: document.getElementById('global-exam-time').value,
+      immFB: document.getElementById('global-practice-mode').checked
+    });
+  }
+  document.getElementById('global-exam-time').addEventListener('change', saveGlobalSettings);
+  document.getElementById('global-practice-mode').addEventListener('change', saveGlobalSettings);
+
+  // Search logic
+  const searchInput = document.getElementById('search-subjects');
+  if (searchInput) {
+    searchInput.addEventListener('input', e => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('.subject-card').forEach(card => {
+        const name = card.querySelector('.subject-card-name').textContent.toLowerCase();
+        card.style.display = name.includes(term) ? '' : 'none';
+      });
+    });
+  }
+});
+
+/* ============================================================
+   Subject card rendering
+============================================================ */
+function renderCard(subject, containerId) {
+  const history  = QuizUtils.loadHistory(subject.id);
+  const answered = QuizUtils.loadAnswered(subject.id);
+  const saved    = QuizUtils.loadSettings('subject_' + subject.id);
+  const quizPage = subject.type === 'math' ? 'math-quiz.html' : 'quiz.html';
+
+  const card = document.createElement('div');
+  card.className = 'subject-card';
+
+  const historyHtml = history.length
+    ? history.map(h => {
+        const score = h.mode === 'exam' ? `${h.score}/${h.total}` : `${h.percent}%`;
+        return `<span class="history-pill">${score}</span>`;
+      }).join('')
+    : '<span class="text-faint text-xs">нет истории</span>';
+
+  const answeredCount = answered.size;
+  const defaultCount = subject.type === 'math' ? 1 : 20;
+  const count    = saved.count    !== undefined ? saved.count    : defaultCount;
+  const shuffleQ = saved.shuffleQ !== undefined ? saved.shuffleQ : true;
+  const shuffleA = saved.shuffleA !== undefined ? saved.shuffleA : true;
+
+  card.innerHTML = `
+    <div class="subject-card-header">
+      <div style="flex:1;min-width:0;">
+        <div class="subject-card-name">${subject.name}</div>
+        <div class="subject-card-meta mt-2">
+          ${answeredCount > 0 ? `<span class="text-success">${answeredCount} отвечено</span> &middot; ` : ''}
+          <span class="badge badge-${subject.type}">${subject.type === 'math' ? 'Math' : 'General'}</span>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm gear-btn" title="Настройки" style="padding:5px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+
+    <div class="subject-card-history">${historyHtml}</div>
+
+    <div class="settings-drawer" id="drawer-${subject.id}">
+      <div class="form-row" style="margin-bottom:4px;">
+        <label>${subject.type === 'math' ? 'Вопросов для тренировки' : 'Количество вопросов'}</label>
+        <input type="number" class="setting-count" min="1" value="${count}" style="width:72px;">
+      </div>
+      <label class="checkbox-row" style="margin-bottom:6px;">
+        <input type="checkbox" class="setting-shuffle-q" ${shuffleQ ? 'checked' : ''}>
+        <span>Перемешать вопросы</span>
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" class="setting-shuffle-a" ${shuffleA ? 'checked' : ''}>
+        <span>Перемешать ответы</span>
+      </label>
+      ${subject.type === 'math' ? `
+      <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+        <label style="font-size:0.85rem; display:block; margin-bottom:8px;">Типы для тренировки:</label>
+        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+          ${Array.from({length: 14}, (_, i) => `
+            <label class="checkbox-row" style="margin-bottom:0;">
+              <input type="checkbox" class="setting-type-cb" value="${i+1}" ${saved.types && !saved.types.includes(String(i+1)) ? '' : 'checked'}>
+              <span style="font-size:0.8rem;">${i+1}</span>
+            </label>
+          `).join('')}
+        </div>
+      </div>
+      ` : ''}
+    </div>
+
+    <div class="subject-card-actions">
+      <a href="${quizPage}?subject=${subject.id}&mode=practice" class="btn btn-secondary btn-sm" id="btn-practice-${subject.id}">Тренировка</a>
+      <a href="${quizPage}?subject=${subject.id}&mode=exam" class="btn btn-primary btn-sm" id="btn-exam-${subject.id}">Экзамен</a>
+    </div>
+  `;
+
+  document.getElementById(containerId).appendChild(card);
+
+  // Gear toggle
+  const drawer  = card.querySelector('.settings-drawer');
+  const gearBtn = card.querySelector('.gear-btn');
+  gearBtn.addEventListener('click', () => drawer.classList.toggle('open'));
+
+  // Save settings on change
+  const countEl   = card.querySelector('.setting-count');
+  const shuffleQEl = card.querySelector('.setting-shuffle-q');
+  const shuffleAEl = card.querySelector('.setting-shuffle-a');
+
+  function saveCardSettings() {
+    const val = parseInt(countEl.value) || defaultCount;
+    let types = [];
+    if (subject.type === 'math') {
+      card.querySelectorAll('.setting-type-cb:checked').forEach(cb => types.push(cb.value));
+    }
+    QuizUtils.saveSettings('subject_' + subject.id, {
+      count:    val,
+      shuffleQ: shuffleQEl.checked,
+      shuffleA: shuffleAEl.checked,
+      types:    types
+    });
+    updateStartLinks();
+  }
+
+  function updateStartLinks() {
+    const c  = parseInt(countEl.value) || defaultCount;
+    const sq = shuffleQEl.checked ? '1' : '0';
+    const sa = shuffleAEl.checked ? '1' : '0';
+    
+    const gTime = document.getElementById('global-exam-time').value || '60';
+    const gImm  = document.getElementById('global-practice-mode').checked ? '1' : '0';
+
+    const base = `${quizPage}?subject=${subject.id}&count=${c}&shuffleQ=${sq}&shuffleA=${sa}&time=${gTime}&immFB=${gImm}`;
+    let practiceUrl = base + '&mode=practice';
+    if (subject.type === 'math') {
+      const typesStr = Array.from(card.querySelectorAll('.setting-type-cb:checked')).map(cb => cb.value).join(',');
+      practiceUrl += '&types=' + encodeURIComponent(typesStr);
+    }
+    document.getElementById('btn-practice-' + subject.id).href = practiceUrl;
+    document.getElementById('btn-exam-'     + subject.id).href = base + '&mode=exam';
+  }
+
+  countEl.addEventListener('change',    saveCardSettings);
+  shuffleQEl.addEventListener('change', saveCardSettings);
+  shuffleAEl.addEventListener('change', saveCardSettings);
+  card.querySelectorAll('.setting-type-cb').forEach(cb => cb.addEventListener('change', saveCardSettings));
+  
+  // Also listen to global settings
+  document.getElementById('global-exam-time').addEventListener('input', updateStartLinks);
+  document.getElementById('global-practice-mode').addEventListener('change', updateStartLinks);
+
+  updateStartLinks();
+}
+
+/* ============================================================
+   History section
+============================================================ */
+function renderHistorySection(subjects) {
+  const container = document.getElementById('history-entries');
+  container.innerHTML = '';
+  let hasAny = false;
+
+  subjects.forEach(subject => {
+    const history = QuizUtils.loadHistory(subject.id);
+    if (!history.length) return;
+    hasAny = true;
+
+    const group = document.createElement('div');
+    group.className = 'history-subject-group';
+    group.innerHTML = `<div class="history-subject-label">${subject.name}</div>`;
+
+    history.forEach((entry, idx) => {
+      const mode  = entry.mode === 'exam' ? 'Экзамен' : 'Тренировка';
+      const score = entry.mode === 'exam'
+        ? `${entry.score}/${entry.total} баллов`
+        : `${entry.percent}% (${entry.score}/${entry.total})`;
+
+      const isPassed = entry.mode === 'exam'
+        ? (entry.score >= entry.total * 0.6)
+        : (entry.percent >= 60);
+
+      const el = document.createElement('div');
+      el.className = 'history-entry';
+      el.innerHTML = `
+        <span class="history-entry-score">${score}</span>
+        <span class="history-entry-meta">${QuizUtils.formatDate(entry.date)} &middot; ${mode}</span>
+        <span class="history-entry-badge">
+          <span class="badge ${isPassed ? 'badge-success' : 'badge-danger'}">${isPassed ? 'Сдан' : 'Не сдан'}</span>
+        </span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
+      `;
+      el.addEventListener('click', () => openHistoryModal(subject, entry, idx));
+      group.appendChild(el);
+    });
+
+    container.appendChild(group);
+  });
+
+  if (hasAny) {
+    document.getElementById('history-section').classList.remove('hidden');
+  }
+}
+
+function openHistoryModal(subject, entry, idx) {
+  const modal = document.getElementById('history-modal');
+  const body  = document.getElementById('history-modal-body');
+  const title = document.getElementById('history-modal-title');
+
+  const mode = entry.mode === 'exam' ? 'Экзамен' : 'Тренировка';
+  title.textContent = `${subject.name} — ${mode} ${QuizUtils.formatDate(entry.date)}`;
+
+  body.innerHTML = '';
+  QuizUtils.renderSessionResult(entry, body);
+
+  modal.classList.remove('hidden');
+}
+
+function closeHistoryModal() {
+  document.getElementById('history-modal').classList.add('hidden');
+}
+</script>
 </body>
 </html>

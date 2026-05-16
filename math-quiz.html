@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Математический тест</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body class="page-math">
+<div class="app">
+
+  <header class="app-header">
+    <a href="index.html" class="logo">
+      <img src="assets/logo.png" alt="QuizPlatform" class="logo-img" draggable="false" onerror="this.style.display='none'">
+    </a>
+    <span class="header-spacer"></span>
+    <span id="mode-badge" class="badge badge-math" style="margin-right:6px;display:none;"></span>
+    <button id="theme-toggle" class="btn-icon" title="Сменить тему"></button>
+  </header>
+
+  <main class="app-main" id="main-area">
+
+    <!-- Sticky bar: title, progress, timer, finish -->
+    <div class="quiz-fixed-bar hidden" id="quiz-fixed-bar">
+      <span class="quiz-fixed-title" id="quiz-title"></span>
+      <span id="quiz-progress" class="text-sm text-muted"></span>
+      <span id="quiz-timer" class="quiz-timer hidden"></span>
+      <button class="btn btn-danger btn-sm" id="btn-finish-top">Завершить</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="screen-loading" style="padding:40px 0;">
+      <div class="empty-state">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <p>Загрузка вопросов...</p>
+      </div>
+    </div>
+
+    <!-- Quiz screen -->
+    <div id="screen-quiz" class="hidden" style="padding-top:12px;">
+      <div class="progress-bar mb-4">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+
+      <div class="question-card" id="question-card">
+        <span class="question-id-badge" id="question-id-badge"></span>
+        <div class="question-text selectable" id="question-text"></div>
+        <div class="options-grid" id="options-grid"></div>
+      </div>
+
+      <!-- Nav dots -->
+      <div class="nav-dots-row" id="nav-dots-container"></div>
+
+      <div class="quiz-nav-row">
+        <button class="btn btn-secondary" id="btn-prev">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Назад
+        </button>
+        <span class="text-sm text-muted" id="q-counter"></span>
+        <button class="btn btn-secondary" id="btn-next">
+          Далее
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Results screen -->
+    <div id="screen-results" class="hidden" style="padding-top:12px;">
+      <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:12px;">
+        <h1>Результаты</h1>
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="btn-retry">Повторить</button>
+          <a href="index.html" class="btn btn-ghost">На главную</a>
+        </div>
+      </div>
+
+      <div class="results-grid">
+        <div class="card score-display glass">
+          <div class="score-big" id="score-big">0</div>
+          <div class="score-label" id="score-label"></div>
+          <div id="pass-badge" class="hidden mt-3"></div>
+        </div>
+        <div class="card glass">
+          <h3 class="mb-3">История</h3>
+          <div id="history-container"></div>
+        </div>
+      </div>
+
+      <div id="type-breakdown-section" class="hidden mt-4">
+        <h2 class="mb-3">По типам вопросов</h2>
+        <div class="table-wrap" style="overflow-x:auto;">
+          <table class="type-breakdown-table">
+            <thead>
+              <tr><th>Тип</th><th>Верно</th><th>Всего</th><th>Баллы</th><th>%</th></tr>
+            </thead>
+            <tbody id="type-breakdown-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="mistakes-section" class="hidden mt-4">
+        <h2 class="mb-3">Ошибки</h2>
+        <div id="mistakes-list"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Finish confirmation modal -->
+<div class="modal-backdrop hidden" id="finish-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header"><h2>Завершить тест?</h2></div>
+    <div class="modal-body">
+      <p id="finish-modal-text" class="text-muted" style="font-size:0.9rem;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost"   id="finish-cancel">Отмена</button>
+      <button class="btn btn-danger"  id="finish-confirm">Завершить</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="assets/quiz.js"></script>
+<script>
+/* ============================================================
+   Calculus scoring
+============================================================ */
+function getQuestionPts(q) {
+  const t = parseInt(q['Тип вопроса']);
+  if (!isNaN(t)) return t <= 6 ? 6 : 8;
+  return 6;
+}
+
+/* ============================================================
+   State
+============================================================ */
+let allQuestions    = [];
+let sessionQuestions = [];
+let availableTypes  = [];
+let currentIndex    = 0;
+let userAnswers     = {};
+let shuffledOptions  = {};
+let timerInterval   = null;
+let timerRemaining  = 0;
+let subjectId       = null;
+let subjectName     = '';
+
+const params        = new URLSearchParams(location.search);
+const paramSubject  = params.get('subject');
+const paramMode     = params.get('mode') || 'practice';
+const paramCount    = parseInt(params.get('count'))    || null;
+const paramShuffleQ = params.get('shuffleQ');
+const paramShuffleA = params.get('shuffleA');
+const paramTime     = parseInt(params.get('time')) || 60;
+const paramImmFB    = params.get('immFB') === '1';
+const paramTypes    = params.get('types');
+
+/* ============================================================
+   Init
+============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
+  QuizUtils.initTheme();
+
+  if (!paramSubject) {
+    location.href = 'index.html';
+    return;
+  }
+
+  const badge = document.getElementById('mode-badge');
+  badge.textContent = paramMode === 'exam' ? 'Экзамен' : 'Тренировка';
+  badge.className = 'badge ' + (paramMode === 'exam' ? 'badge-danger' : 'badge-math');
+  badge.style.display = '';
+
+  document.getElementById('btn-finish-top').addEventListener('click', showFinishConfirm);
+  document.getElementById('finish-cancel').addEventListener('click', hideFinishConfirm);
+  document.getElementById('finish-confirm').addEventListener('click', () => { hideFinishConfirm(); finishQuiz(); });
+  document.getElementById('btn-prev').addEventListener('click', () => navigate(-1));
+  document.getElementById('btn-next').addEventListener('click', () => navigate(1));
+  document.getElementById('btn-retry').addEventListener('click', () => location.reload());
+  document.getElementById('finish-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) hideFinishConfirm();
+  });
+
+  try {
+    const manifest = await QuizUtils.loadManifest();
+    const subject  = manifest.subjects.find(s => s.id === paramSubject);
+    if (!subject) { location.href = 'index.html'; return; }
+    subjectId   = subject.id;
+    subjectName = subject.name;
+    document.title = subject.name;
+
+    allQuestions   = await QuizUtils.loadQuestions(subject.file);
+    availableTypes = [...new Set(allQuestions.map(q => q['Тип вопроса']).filter(Boolean))]
+      .sort((a, b) => { const na = parseInt(a), nb = parseInt(b); return isNaN(na)||isNaN(nb) ? String(a).localeCompare(String(b)) : na - nb; });
+
+    startQuiz();
+  } catch (e) {
+    document.getElementById('screen-loading').innerHTML =
+      `<div class="card" style="border-color:var(--danger);margin-top:20px;"><p class="text-danger">Ошибка загрузки: ${e.message}</p><a href="index.html" class="btn btn-secondary mt-3">На главную</a></div>`;
+  }
+});
+
+/* ============================================================
+   Build exam session: 1 (or N) random question per type
+============================================================ */
+function buildExamSession(nPerType, selectedTypes) {
+  const byType = {};
+  allQuestions.forEach(q => {
+    const t = q['Тип вопроса'];
+    if (selectedTypes.includes(String(t))) {
+      (byType[t] = byType[t] || []).push(q);
+    }
+  });
+  const result = [];
+  selectedTypes.forEach(t => {
+    const pool = QuizUtils.shuffleArray(byType[t] || []);
+    result.push(...pool.slice(0, nPerType));
+  });
+  return result;
+}
+
+/* ============================================================
+   Quiz start
+============================================================ */
+function startQuiz() {
+  const savedSettings = QuizUtils.loadSettings('subject_' + subjectId);
+
+  const shuffleQ = paramShuffleQ !== null
+    ? paramShuffleQ === '1'
+    : (savedSettings.shuffleQ !== undefined ? savedSettings.shuffleQ : true);
+  const shuffleA = paramShuffleA !== null
+    ? paramShuffleA === '1'
+    : (savedSettings.shuffleA !== undefined ? savedSettings.shuffleA : true);
+
+  if (paramMode === 'exam') {
+    // Exam: exactly 1 per type
+    const selectedTypes = availableTypes.map(String);
+    sessionQuestions = buildExamSession(1, selectedTypes);
+    if (shuffleQ) sessionQuestions = QuizUtils.shuffleArray(sessionQuestions);
+  } else {
+    // Practice: count questions from pool, optionally filtered by types
+    const count = paramCount !== null ? paramCount : (savedSettings.count || 20);
+    let pool = [...allQuestions];
+    
+    if (paramTypes) {
+      const selectedTypes = paramTypes.split(',').map(s => s.trim());
+      pool = pool.filter(q => selectedTypes.includes(String(q['Тип вопроса'])));
+    }
+    
+    if (shuffleQ) pool = QuizUtils.shuffleArray(pool);
+    sessionQuestions = pool.slice(0, Math.min(count, pool.length));
+  }
+
+  shuffledOptions = {};
+  sessionQuestions.forEach((q, i) => {
+    const keys = QuizUtils.getAnswerKeys(q);
+    shuffledOptions[i] = shuffleA
+      ? QuizUtils.shuffleArray(keys.map(k => ({ key: k, text: q[k] })))
+      : keys.map(k => ({ key: k, text: q[k] }));
+  });
+
+  userAnswers  = {};
+  currentIndex = 0;
+
+  clearInterval(timerInterval);
+  const timerMinutes = paramTime;
+  if (paramMode === 'exam') {
+    timerRemaining = timerMinutes * 60;
+    startTimer();
+  } else {
+    document.getElementById('quiz-timer').classList.add('hidden');
+  }
+
+  document.getElementById('screen-loading').classList.add('hidden');
+  document.getElementById('screen-quiz').classList.remove('hidden');
+  document.getElementById('quiz-fixed-bar').classList.remove('hidden');
+  document.getElementById('quiz-title').textContent = subjectName;
+
+  renderQuestion();
+  renderNavDots();
+}
+
+
+/* ============================================================
+   Render question
+============================================================ */
+function renderQuestion() {
+  const q     = sessionQuestions[currentIndex];
+  const total = sessionQuestions.length;
+
+  document.getElementById('question-id-badge').textContent = `${q.id || ''} (Тип: ${q['Тип вопроса'] || '?'})`;
+  document.getElementById('q-counter').textContent      = `${currentIndex + 1} / ${total}`;
+  const answeredCount = Object.keys(userAnswers).length;
+  document.getElementById('quiz-progress').textContent  = `${answeredCount}/${total}`;
+
+  const pct = ((currentIndex + 1) / total) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  const card = document.getElementById('question-card');
+  card.classList.remove('fade-in');
+  requestAnimationFrame(() => card.classList.add('fade-in'));
+
+  // Question text (images can zoom)
+  QuizUtils.renderContent(document.getElementById('question-text'), q['Вопрос'] || '');
+
+  // Options — positional A/B/C/D labels
+  const grid    = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  const options = shuffledOptions[currentIndex];
+  const chosen  = userAnswers[currentIndex];
+
+  options.forEach(({ key, text }, idx) => {
+    const displayLabel = ['A', 'B', 'C', 'D'][idx] || key;
+    let isCorrectOpt = false;
+    let isWrongOpt = false;
+    if (paramMode === 'practice' && paramImmFB && chosen) {
+      const correctKey = QuizUtils.normalizeAnswer(q['Правильный ответ']);
+      if (key === correctKey) isCorrectOpt = true;
+      if (key === chosen && chosen !== correctKey) isWrongOpt = true;
+    }
+
+    const item = document.createElement('div');
+    item.className = 'option-item' 
+      + (chosen === key ? ' selected' : '')
+      + (isCorrectOpt ? ' correct' : '')
+      + (isWrongOpt ? ' incorrect' : '');
+    item.dataset.key = key;
+    item.innerHTML = `
+      <div class="option-key">${displayLabel}</div>
+      <div class="option-label-text selectable" style="flex:1;font-size:0.875rem;"></div>
+    `;
+    // No zoom for option images
+    QuizUtils.renderContent(item.querySelector('.option-label-text'), text, false);
+    item.addEventListener('click', () => selectAnswer(key));
+    grid.appendChild(item);
+  });
+
+  document.getElementById('btn-prev').disabled = currentIndex === 0;
+  document.getElementById('btn-next').disabled = currentIndex === total - 1;
+}
+
+function selectAnswer(key) {
+  if (paramMode === 'practice' && paramImmFB && userAnswers[currentIndex]) return;
+  userAnswers[currentIndex] = key;
+  renderQuestion();
+  renderNavDots();
+}
+
+function navigate(dir) {
+  currentIndex = Math.max(0, Math.min(sessionQuestions.length - 1, currentIndex + dir));
+  renderQuestion();
+}
+
+/* ============================================================
+   Nav dots
+============================================================ */
+function renderNavDots() {
+  const container = document.getElementById('nav-dots-container');
+  container.innerHTML = '';
+  sessionQuestions.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot'
+      + (i === currentIndex ? ' current' : '')
+      + (userAnswers[i] !== undefined && i !== currentIndex ? ' answered' : '');
+    dot.textContent = i + 1;
+    dot.addEventListener('click', () => { currentIndex = i; renderQuestion(); renderNavDots(); });
+    container.appendChild(dot);
+  });
+}
+
+/* ============================================================
+   Timer
+============================================================ */
+function startTimer() {
+  const el = document.getElementById('quiz-timer');
+  el.classList.remove('hidden');
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timerRemaining--;
+    updateTimerDisplay();
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval);
+      QuizUtils.toast('Время вышло!', 'danger');
+      finishQuiz();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('quiz-timer');
+  const m  = Math.floor(timerRemaining / 60).toString().padStart(2, '0');
+  const s  = (timerRemaining % 60).toString().padStart(2, '0');
+  el.textContent = `${m}:${s}`;
+  el.className = 'quiz-timer'
+    + (timerRemaining < 60  ? ' danger'  : '')
+    + (timerRemaining < 180 && timerRemaining >= 60 ? ' warning' : '');
+}
+
+/* ============================================================
+   Finish confirmation
+============================================================ */
+function showFinishConfirm() {
+  const answered = Object.keys(userAnswers).length;
+  const total    = sessionQuestions.length;
+  document.getElementById('finish-modal-text').textContent =
+    `Отвечено ${answered} из ${total} вопросов. Завершить тест?`;
+  document.getElementById('finish-modal').classList.remove('hidden');
+}
+
+function hideFinishConfirm() {
+  document.getElementById('finish-modal').classList.add('hidden');
+}
+
+/* ============================================================
+   Finish & Results
+============================================================ */
+function finishQuiz() {
+  clearInterval(timerInterval);
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('quiz-fixed-bar').classList.add('hidden');
+
+  let correct = 0, earnedPts = 0, maxPts = 0;
+  const mistakes   = [];
+  const typeStats  = {};
+
+  sessionQuestions.forEach((q, i) => {
+    const chosen = userAnswers[i];
+    const right  = QuizUtils.normalizeAnswer(q['Правильный ответ']);
+    const qpts   = getQuestionPts(q);
+    const type   = q['Тип вопроса'] || '?';
+    maxPts += qpts;
+
+    if (!typeStats[type]) typeStats[type] = { correct: 0, total: 0, pts: 0, maxPts: 0 };
+    typeStats[type].total++;
+    typeStats[type].maxPts += qpts;
+
+    if (QuizUtils.normalizeAnswer(chosen) === right) {
+      correct++;
+      earnedPts += qpts;
+      typeStats[type].correct++;
+      typeStats[type].pts += qpts;
+    } else {
+      mistakes.push({ q, chosen, right, index: i });
+    }
+  });
+
+  const total   = sessionQuestions.length;
+  const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+  // 60% of max POINTS is the pass threshold for math
+  const passed = earnedPts >= maxPts * 0.6;
+
+  // Save full session history
+  if (subjectId) {
+    QuizUtils.saveHistory(subjectId, {
+      date:            new Date().toISOString(),
+      mode:            paramMode,
+      percent,
+      score:           paramMode === 'exam' ? earnedPts : correct,
+      total:           paramMode === 'exam' ? maxPts    : total,
+      questions:       sessionQuestions,
+      answers:         { ...userAnswers },
+      shuffledOptions: JSON.parse(JSON.stringify(shuffledOptions)),
+    });
+
+    const answered = QuizUtils.loadAnswered(subjectId);
+    sessionQuestions.forEach((q, i) => {
+      if (QuizUtils.normalizeAnswer(userAnswers[i]) === QuizUtils.normalizeAnswer(q['Правильный ответ']) && q.id) {
+        answered.add(q.id);
+      }
+    });
+    QuizUtils.saveAnswered(subjectId, answered);
+  }
+
+  // Score display
+  const scoreBig = document.getElementById('score-big');
+  if (paramMode === 'exam') {
+    scoreBig.textContent = `${earnedPts}/${maxPts}`;
+    scoreBig.style.cssText = '';
+    scoreBig.style.color = passed ? 'var(--success)' : 'var(--danger)';
+    document.getElementById('score-label').textContent = `${correct} из ${total} верных`;
+
+    const badge = document.getElementById('pass-badge');
+    badge.classList.remove('hidden');
+    badge.innerHTML = passed
+      ? `<span class="badge badge-success" style="font-size:0.85rem;padding:4px 14px;">Сдан</span>`
+      : `<span class="badge badge-danger"  style="font-size:0.85rem;padding:4px 14px;">Не сдан</span>`;
+  } else {
+    scoreBig.textContent = `${percent}%`;
+    scoreBig.style.cssText = '';
+    scoreBig.style.color = percent >= 80 ? 'var(--success)' : percent >= 50 ? 'var(--warning)' : 'var(--danger)';
+    document.getElementById('score-label').textContent = `${correct} из ${total} верных`;
+    document.getElementById('pass-badge').classList.add('hidden');
+  }
+
+  // History
+  if (subjectId) QuizUtils.renderHistory(subjectId, document.getElementById('history-container'));
+
+  // Type breakdown
+  const types = Object.keys(typeStats).sort((a, b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    return isNaN(na)||isNaN(nb) ? String(a).localeCompare(String(b)) : na - nb;
+  });
+  if (types.length > 1) {
+    document.getElementById('type-breakdown-section').classList.remove('hidden');
+    const tbody = document.getElementById('type-breakdown-body');
+    tbody.innerHTML = types.map(type => {
+      const s   = typeStats[type];
+      const pct = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
+      return `<tr>
+        <td>Тип ${type}</td>
+        <td>${s.correct}</td>
+        <td>${s.total}</td>
+        <td>${s.pts}/${s.maxPts}</td>
+        <td style="color:${pct >= 70 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--danger)'}">${pct}%</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Mistakes
+  if (mistakes.length > 0) {
+    document.getElementById('mistakes-section').classList.remove('hidden');
+    renderMistakes(mistakes);
+  }
+
+  document.getElementById('screen-results').classList.remove('hidden');
+}
+
+function renderMistakes(mistakes) {
+  const list = document.getElementById('mistakes-list');
+  list.innerHTML = '';
+
+  mistakes.forEach(({ q, chosen, right, index }) => {
+    const item   = document.createElement('div');
+    item.className = 'mistake-item';
+
+    const header = document.createElement('div');
+    header.className = 'mistake-header';
+    header.innerHTML = `
+      <span class="badge badge-danger" style="flex-shrink:0;">№${index + 1}</span>
+      <span class="text-xs text-muted" style="flex-shrink:0;">Тип ${q['Тип вопроса'] || '?'} &middot; ${getQuestionPts(q)} б.</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="selectable"></span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;transition:transform 150ms ease;"><polyline points="6 9 12 15 18 9"/></svg>
+    `;
+    header.querySelectorAll('span')[2].textContent =
+      String(q['Вопрос'] || '').replace(/<[^>]+>/g, '').trim().slice(0, 60) || `Вопрос ${index + 1}`;
+
+    const body = document.createElement('div');
+    body.className = 'mistake-body hidden';
+
+    const opts = shuffledOptions[index] || QuizUtils.getAnswerKeys(q).map(k => ({ key: k, text: q[k] }));
+    const optHtml = opts.map(({ key, text }, idx) => {
+      const posLabel = ['A','B','C','D'][idx] || key;
+      const isRight  = key === right;
+      const isChosen = key === chosen;
+      const cls = 'preview-option' + (isRight ? ' correct-opt' : '');
+      const txt = String(text || '').replace(/<[^>]+>/g, '');
+      return `<div class="${cls}">
+        <span style="font-weight:700;min-width:20px;">${posLabel}</span>
+        <span class="selectable" style="flex:1;">${isRight ? '<strong>' : ''}${txt}${isRight ? '</strong>' : ''}</span>
+        ${isRight  ? '<span style="color:var(--success);font-size:0.72rem;font-weight:600;">верно</span>' : ''}
+        ${isChosen && !isRight ? '<span style="color:var(--danger);font-size:0.72rem;font-weight:600;">ваш</span>' : ''}
+      </div>`;
+    }).join('');
+
+    body.innerHTML = `
+      <div class="question-text selectable mb-3"></div>
+      <div class="preview-options">${optHtml}</div>
+      <p class="text-sm text-muted mt-2">Верный: <strong class="text-success">${right}</strong>${chosen ? `, ваш: <strong class="text-danger">${chosen}</strong>` : ' (пропущен)'}</p>
+    `;
+    QuizUtils.renderContent(body.querySelector('.question-text'), q['Вопрос']);
+
+    header.addEventListener('click', () => {
+      body.classList.toggle('hidden');
+      header.querySelector('svg').style.transform = body.classList.contains('hidden') ? '' : 'rotate(180deg)';
+    });
+
+    item.appendChild(header);
+    item.appendChild(body);
+    list.appendChild(item);
+  });
+}
+</script>
+</body>
+</html>
