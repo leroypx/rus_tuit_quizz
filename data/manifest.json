@@ -1,0 +1,9 @@
+{
+  "subjects": [
+    {"id": "calculus1",    "name": "Математический анализ 1",      "type": "math",    "file": "data/calculus1.xlsx"},
+    {"id": "calculus2",    "name": "Математический анализ 2",      "type": "math",    "file": "data/calculus2.xlsx"},
+    {"id": "os_quiz",      "name": "Операционные системы",         "type": "general", "file": "data/os_quiz.xlsx"},
+    {"id": "eco_security", "name": "Экономическая безопасность",   "type": "general", "file": "data/eco_security.xlsx"},
+    {"id": "physics1",     "name": "Физика 1",                     "type": "general", "file": "data/physics1.xlsx"}
+  ]
+}
