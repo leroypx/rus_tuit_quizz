@@ -2,7 +2,7 @@
 
 Lightweight quiz platform hosted on GitHub Pages. No frameworks, no build step — just HTML, CSS, and JS.
 
-**[Live demo](https://your-username.github.io/rus_tuit_quizzer_claude/)**
+**[Live demo](https://leroypx.github.io/rus_tuit_quizz/index.html)**
 
 ---
 
