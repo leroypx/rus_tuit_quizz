@@ -50,7 +50,15 @@
       </div>
 
       <!-- Nav dots -->
-      <div class="nav-dots-row" id="nav-dots-container"></div>
+      <div class="nav-dots-scroller">
+        <button class="nav-dots-btn" id="nav-dots-prev" aria-label="Прокрутить назад">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="nav-dots-row" id="nav-dots-container"></div>
+        <button class="nav-dots-btn" id="nav-dots-next" aria-label="Прокрутить вперёд">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
 
       <div class="quiz-nav-row">
         <button class="btn btn-secondary" id="btn-prev">
@@ -138,6 +146,7 @@ const paramShuffleQ = params.get('shuffleQ');
 const paramShuffleA = params.get('shuffleA');
 const paramTime     = parseInt(params.get('time')) || 60;
 const paramImmFB    = params.get('immFB') === '1';
+const paramAllQ     = params.get('allQ') === '1';
 
 /* ============================================================
    Init
@@ -168,6 +177,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target === e.currentTarget) hideFinishConfirm();
   });
 
+  // Nav dots arrow buttons
+  const _dotsRow = document.getElementById('nav-dots-container');
+  document.getElementById('nav-dots-prev').addEventListener('click', () => {
+    _dotsRow.scrollBy({ left: -5 * 42, behavior: 'smooth' });
+  });
+  document.getElementById('nav-dots-next').addEventListener('click', () => {
+    _dotsRow.scrollBy({ left: 5 * 42, behavior: 'smooth' });
+  });
+  _dotsRow.addEventListener('scroll', updateNavArrows);
+
   try {
     const manifest = await QuizUtils.loadManifest();
     const subject  = manifest.subjects.find(s => s.id === paramSubject);
@@ -190,9 +209,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 function startQuiz() {
   const savedSettings = QuizUtils.loadSettings('subject_' + subjectId);
 
-  const count    = paramCount   !== null ? paramCount   : (savedSettings.count    || 20);
   const shuffleQ = paramShuffleQ !== null ? paramShuffleQ === '1' : (savedSettings.shuffleQ !== undefined ? savedSettings.shuffleQ : true);
   const shuffleA = paramShuffleA !== null ? paramShuffleA === '1' : (savedSettings.shuffleA !== undefined ? savedSettings.shuffleA : true);
+  const allQ     = paramAllQ || (savedSettings.allQ || false);
+  const count    = allQ ? allQuestions.length : (paramCount !== null ? paramCount : (savedSettings.count || 20));
 
   let pool = [...allQuestions];
   if (shuffleQ) pool = QuizUtils.shuffleArray(pool);
@@ -314,6 +334,17 @@ function renderNavDots() {
     dot.addEventListener('click', () => { currentIndex = i; renderQuestion(); renderNavDots(); });
     container.appendChild(dot);
   });
+  container.querySelector('.nav-dot.current')?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  updateNavArrows();
+}
+
+function updateNavArrows() {
+  const row  = document.getElementById('nav-dots-container');
+  const prev = document.getElementById('nav-dots-prev');
+  const next = document.getElementById('nav-dots-next');
+  if (!row || !prev || !next) return;
+  prev.disabled = row.scrollLeft <= 2;
+  next.disabled = row.scrollLeft >= row.scrollWidth - row.clientWidth - 2;
 }
 
 /* ============================================================

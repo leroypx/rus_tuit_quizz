@@ -156,6 +156,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     renderHistorySection(manifest.subjects);
 
+    // Load question counts in background
+    manifest.subjects.forEach(s => {
+      QuizUtils.loadQuestions(s.file).then(qs => {
+        const total = qs.length;
+        const countEl = document.getElementById('q-count-' + s.id);
+        const totalEl = document.getElementById('q-total-' + s.id);
+        if (countEl) countEl.textContent = total + ' вопр.';
+        if (totalEl) totalEl.textContent = total;
+      }).catch(() => {
+        const el = document.getElementById('q-count-' + s.id);
+        if (el) el.textContent = '';
+      });
+    });
+
   } catch (e) {
     document.getElementById('subjects-loading').classList.add('hidden');
     document.getElementById('subjects-error').classList.remove('hidden');
@@ -213,8 +227,9 @@ function renderCard(subject, containerId) {
     : '<span class="text-faint text-xs">нет истории</span>';
 
   const answeredCount = answered.size;
-  const defaultCount = subject.type === 'math' ? 1 : 20;
+  const defaultCount = 20;
   const count    = saved.count    !== undefined ? saved.count    : defaultCount;
+  const allQ     = saved.allQ     !== undefined ? saved.allQ     : false;
   const shuffleQ = saved.shuffleQ !== undefined ? saved.shuffleQ : true;
   const shuffleA = saved.shuffleA !== undefined ? saved.shuffleA : true;
 
@@ -222,9 +237,10 @@ function renderCard(subject, containerId) {
     <div class="subject-card-header">
       <div style="flex:1;min-width:0;">
         <div class="subject-card-name">${subject.name}</div>
-        <div class="subject-card-meta mt-2">
-          ${answeredCount > 0 ? `<span class="text-success">${answeredCount} отвечено</span> &middot; ` : ''}
+        <div class="subject-card-meta mt-2" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span class="badge badge-${subject.type}">${subject.type === 'math' ? 'Math' : 'General'}</span>
+          <span id="q-count-${subject.id}" class="text-xs text-muted">...</span>
+          ${answeredCount > 0 ? `<span class="text-xs text-success">${answeredCount} отвечено</span>` : ''}
         </div>
       </div>
       <button class="btn btn-ghost btn-sm gear-btn" title="Настройки" style="padding:5px;">
@@ -235,9 +251,15 @@ function renderCard(subject, containerId) {
     <div class="subject-card-history">${historyHtml}</div>
 
     <div class="settings-drawer" id="drawer-${subject.id}">
-      <div class="form-row" style="margin-bottom:4px;">
-        <label>${subject.type === 'math' ? 'Вопросов для тренировки' : 'Количество вопросов'}</label>
-        <input type="number" class="setting-count" min="1" value="${count}" style="width:72px;">
+      <div class="form-row" style="margin-bottom:8px;">
+        <label>Количество вопросов</label>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <input type="number" class="setting-count" min="1" value="${count}" style="width:72px;" ${allQ ? 'disabled' : ''}>
+          <label class="checkbox-row" style="margin-bottom:0;">
+            <input type="checkbox" class="setting-all-q" ${allQ ? 'checked' : ''}>
+            <span>Все (<span id="q-total-${subject.id}">...</span>)</span>
+          </label>
+        </div>
       </div>
       <label class="checkbox-row" style="margin-bottom:6px;">
         <input type="checkbox" class="setting-shuffle-q" ${shuffleQ ? 'checked' : ''}>
@@ -276,9 +298,15 @@ function renderCard(subject, containerId) {
   gearBtn.addEventListener('click', () => drawer.classList.toggle('open'));
 
   // Save settings on change
-  const countEl   = card.querySelector('.setting-count');
+  const countEl    = card.querySelector('.setting-count');
+  const allQEl     = card.querySelector('.setting-all-q');
   const shuffleQEl = card.querySelector('.setting-shuffle-q');
   const shuffleAEl = card.querySelector('.setting-shuffle-a');
+
+  allQEl.addEventListener('change', () => {
+    countEl.disabled = allQEl.checked;
+    saveCardSettings();
+  });
 
   function saveCardSettings() {
     const val = parseInt(countEl.value) || defaultCount;
@@ -288,6 +316,7 @@ function renderCard(subject, containerId) {
     }
     QuizUtils.saveSettings('subject_' + subject.id, {
       count:    val,
+      allQ:     allQEl.checked,
       shuffleQ: shuffleQEl.checked,
       shuffleA: shuffleAEl.checked,
       types:    types
@@ -296,14 +325,17 @@ function renderCard(subject, containerId) {
   }
 
   function updateStartLinks() {
-    const c  = parseInt(countEl.value) || defaultCount;
-    const sq = shuffleQEl.checked ? '1' : '0';
-    const sa = shuffleAEl.checked ? '1' : '0';
-    
+    const c      = parseInt(countEl.value) || defaultCount;
+    const isAllQ = allQEl.checked;
+    const sq     = shuffleQEl.checked ? '1' : '0';
+    const sa     = shuffleAEl.checked ? '1' : '0';
+
     const gTime = document.getElementById('global-exam-time').value || '60';
     const gImm  = document.getElementById('global-practice-mode').checked ? '1' : '0';
 
-    const base = `${quizPage}?subject=${subject.id}&count=${c}&shuffleQ=${sq}&shuffleA=${sa}&time=${gTime}&immFB=${gImm}`;
+    const countParam = isAllQ ? '' : `&count=${c}`;
+    const allQParam  = isAllQ ? '&allQ=1' : '';
+    const base = `${quizPage}?subject=${subject.id}${countParam}${allQParam}&shuffleQ=${sq}&shuffleA=${sa}&time=${gTime}&immFB=${gImm}`;
     let practiceUrl = base + '&mode=practice';
     if (subject.type === 'math') {
       const typesStr = Array.from(card.querySelectorAll('.setting-type-cb:checked')).map(cb => cb.value).join(',');

@@ -424,15 +424,44 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
    Navigation Dots
    ========================================================= */
 .nav-dots { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0; }
+
+.nav-dots-scroller {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 24px 0;
+}
+.nav-dots-scroller .nav-dots-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-dots-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+.nav-dots-btn:hover { border-color: var(--accent); color: var(--text); }
+.nav-dots-btn:disabled { opacity: 0.25; pointer-events: none; }
+
 .nav-dots-row {
   display: flex;
   flex-wrap: nowrap;
+  align-items: center;
   gap: 8px;
-  margin: 24px 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding-bottom: 8px;
+  padding: 5px 2px 8px;
   width: 100%;
   min-width: 0;
 }
@@ -453,7 +482,7 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
 }
 .nav-dot:hover           { border-color: var(--accent); color: var(--text); transform: translateY(-2px); }
 .nav-dot.answered        { background: var(--surface-solid); border-color: var(--surface-solid); color: var(--text); }
-.nav-dot.current         { background: var(--accent); border-color: var(--accent); color: var(--bg); box-shadow: 0 4px 12px rgba(201, 173, 167, 0.4); transform: scale(1.1); }
+.nav-dot.current         { background: var(--accent); border-color: var(--accent); color: var(--bg); box-shadow: 0 0 10px rgba(201, 173, 167, 0.55); transform: scale(1.1); position: relative; z-index: 1; }
 .nav-dot.correct         { background: var(--success-soft); border-color: var(--success); color: var(--success); }
 .nav-dot.incorrect       { background: var(--danger-soft);  border-color: var(--danger);  color: var(--danger); }
 
@@ -1320,6 +1349,7 @@ details.prompt-details[open] summary::before { transform: rotate(90deg); }
   .quiz-fixed-bar { padding: 10px 16px; gap: 12px; font-size: 0.9rem; }
 
   .editor-toolbar { flex-wrap: wrap; gap: 8px; }
+  .nav-dots-btn { display: none; }
   .bottom-nav {
     display: flex;
     position: fixed;
