@@ -2,6 +2,7 @@
   "subjects": [
     {"id": "calculus1",    "name": "Математический анализ 1",        "type": "math",    "file": "data/calculus1.xlsx"},
     {"id": "calculus2",    "name": "Математический анализ 2",        "type": "math",    "file": "data/calculus2.xlsx"},
+    {"id": "diff",         "name": "Дифференциальные уравнения",     "type": "math",    "file": "data/diff.xlsx"},
     {"id": "bjd",          "name": "Безопасность жизнедеятельности", "type": "general", "file": "data/bjd.xlsx"},
     {"id": "religion",     "name": "Религиоведение",                 "type": "general", "file": "data/religion.xlsx"},
     {"id": "os_quiz",      "name": "Операционные системы",           "type": "general", "file": "data/os_quiz.xlsx"},
