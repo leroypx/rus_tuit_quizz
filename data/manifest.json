@@ -1,13 +1,15 @@
 {
   "subjects": [
-    {"id": "calculus1",    "name": "Математический анализ 1",        "type": "math",    "file": "data/calculus1.xlsx"},
-    {"id": "calculus2",    "name": "Математический анализ 2",        "type": "math",    "file": "data/calculus2.xlsx"},
+    {"id": "calculus1",    "name": "Calculus 1",        "type": "math",    "file": "data/calculus1.xlsx"},
+    {"id": "calculus2",    "name": "Calculus 2",        "type": "math",    "file": "data/calculus2.xlsx"},
     {"id": "diff",         "name": "Дифференциальные уравнения",     "type": "math",    "file": "data/diff.xlsx"},
+    {"id": "prob_stat",    "name": "Вероятность и статистика",       "type": "math",    "file": "data/statistics.xlsx"},
     {"id": "bjd",          "name": "Безопасность жизнедеятельности", "type": "general", "file": "data/bjd.xlsx"},
     {"id": "religion",     "name": "Религиоведение",                 "type": "general", "file": "data/religion.xlsx"},
     {"id": "religion_alt", "name": "Религиоведение old",             "type": "general", "file": "data/religion_476.xlsx"},
     {"id": "digital_media","name": "Цифровые медиа и технологии",    "type": "general", "file": "data/digital_media.xlsx"},
     {"id": "osnovi_ai",    "name": "Основы ИИ",                      "type": "general", "file": "data/osnovi_ai.xlsx"},
+    {"id": "wireless_networks",    "name": "Беспроводные сети",      "type": "general", "file": "data/wireless_networks.xlsx"},    
     {"id": "int_systems",  "name": "Встраиваемые системы",           "type": "general", "file": "data/integrated_systems.xlsx"},
     {"id": "sql_databases","name": "Базы данных",                    "type": "general", "file": "data/sql_databases.xlsx"},
     {"id": "comm_networks","name": "Коммуникационные сети",          "type": "general", "file": "data/comm_networks.xlsx"},    

@@ -14,6 +14,10 @@
       <img src="assets/logo.png" alt="QuizPlatform" class="logo-img" draggable="false">
     </a>
     <span class="header-spacer"></span>
+    <a href="viewer.html" class="btn btn-secondary btn-sm" style="margin-right:4px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      База вопросов
+    </a>
     <a href="editor.html" class="btn btn-secondary btn-sm" style="margin-right:4px;">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       Редактор
@@ -38,16 +42,12 @@
         <input type="text" id="search-subjects" placeholder="Поиск предмета..." style="width: 100%; padding: 10px 12px 10px 40px; background: rgba(34, 34, 59, 0.4); border: 1px solid var(--glass-border); border-radius: var(--radius); color: var(--text); outline: none;">
       </div>
 
-      <!-- Settings -->
-      <div class="global-settings" style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-        <div class="form-row" style="margin-bottom:0;">
-          <label style="margin-bottom:0; font-size: 0.9rem;">Время (мин)</label>
-          <input type="number" id="global-exam-time" value="60" min="1" max="300" style="width: 80px; padding: 6px 12px;">
-        </div>
-        <label class="checkbox-row" style="margin-bottom:0;">
-          <input type="checkbox" id="global-practice-mode">
-          <span style="font-size: 0.9rem;">Мгновенный ответ</span>
-        </label>
+      <!-- Settings button -->
+      <div>
+        <button id="btn-global-settings" class="btn btn-secondary" title="Глобальные настройки">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Глобальные настройки
+        </button>
       </div>
 
     </div>
@@ -129,13 +129,219 @@
   </div>
 </div>
 
+<!-- Settings Sidebar -->
+<div class="settings-sidebar-overlay" id="sidebar-overlay"></div>
+<div class="settings-sidebar" id="sidebar-panel">
+  <div class="settings-sidebar-header">
+    <h2 id="sidebar-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span id="sidebar-header-text">Настройки</span>
+    </h2>
+    <button class="btn btn-ghost btn-sm" id="sidebar-close" style="padding:4px 8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  
+  <div class="settings-sidebar-body">
+    <!-- Section: Global / Exam parameters -->
+    <div id="section-global-settings">
+      <div class="setting-section-title">Общие настройки</div>
+      
+      <div class="form-row" style="margin-bottom: 18px;">
+        <label style="margin-bottom: 8px;">Время на экзамен (минут)</label>
+        <div style="display:flex; align-items:center; gap: 12px;">
+          <input type="range" id="global-exam-time-slider" min="10" max="180" step="5" value="60" style="flex:1; accent-color: var(--accent);">
+          <input type="number" id="global-exam-time" value="60" min="1" max="300" class="sidebar-input-number">
+        </div>
+      </div>
+      
+      <label class="switch-row" style="margin-bottom: 12px;">
+        <span class="switch-label">
+          <span class="switch-title">Мгновенный ответ</span>
+          <span class="switch-desc">Показывать правильный вариант сразу при выборе в режиме тренировки</span>
+        </span>
+        <input type="checkbox" id="global-practice-mode" class="custom-switch-input">
+        <span class="custom-switch-slider"></span>
+      </label>
+    </div>
+    
+    <!-- Section: Subject Specific Settings (hidden when global is open) -->
+    <div id="section-subject-settings" class="hidden">
+      <div class="divider" style="margin: 8px 0 20px;"></div>
+      <div class="setting-section-title" id="subject-settings-title" style="margin-bottom: 14px;">Параметры теста</div>
+      
+      <!-- Questions count Segmented Control -->
+      <div class="form-row" style="margin-bottom: 20px;">
+        <label style="margin-bottom: 8px;">Количество вопросов</label>
+        <div class="segmented-control" id="subject-count-segments" style="margin-bottom: 10px;">
+          <button type="button" class="segment-btn" data-value="10">10</button>
+          <button type="button" class="segment-btn" data-value="20">20</button>
+          <button type="button" class="segment-btn" data-value="30">30</button>
+          <button type="button" class="segment-btn" data-value="50">50</button>
+          <button type="button" class="segment-btn" data-value="all">Все</button>
+          <button type="button" class="segment-btn" data-value="custom">Свой</button>
+        </div>
+        
+        <div id="subject-custom-count-container" class="hidden" style="display:flex; align-items:center; gap:10px;">
+          <input type="number" id="subject-custom-count" min="1" value="20" style="width:100%; max-width: 100px; padding: 6px 12px;">
+          <span class="text-xs text-muted">вопросов (всего доступно: <span id="subject-total-q-indicator">...</span>)</span>
+        </div>
+      </div>
+      
+      <!-- Shuffling switches -->
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom: 20px;">
+        <label class="switch-row">
+          <span class="switch-label">
+            <span class="switch-title">Перемешать вопросы</span>
+            <span class="switch-desc">Выводить вопросы теста в случайном порядке</span>
+          </span>
+          <input type="checkbox" id="subject-shuffle-q" class="custom-switch-input">
+          <span class="custom-switch-slider"></span>
+        </label>
+        
+        <label class="switch-row">
+          <span class="switch-label">
+            <span class="switch-title">Перемешать ответы</span>
+            <span class="switch-desc">Каждый раз перемешивать варианты ответов</span>
+          </span>
+          <input type="checkbox" id="subject-shuffle-a" class="custom-switch-input">
+          <span class="custom-switch-slider"></span>
+        </label>
+      </div>
+      
+      <!-- Math sections categories -->
+      <div id="math-type-selection-container" class="hidden">
+        <label style="margin-bottom: 8px;">Разделы для тренировки:</label>
+        <div class="chips-grid" id="math-types-grid">
+          <!-- chips loaded dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="settings-sidebar-footer">
+    <button class="btn btn-primary" id="sidebar-save-btn">Сохранить</button>
+  </div>
+</div>
+
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="assets/quiz.js"></script>
 <script>
 let allSubjects = [];
+const subjectTotalQuestions = {};
+let activeSidebarSubjectId = null;
+
+// Sidebar elements
+let sidebarOverlay, sidebarPanel, sidebarTitle, sidebarClose, sidebarSaveBtn, sidebarHeaderText;
+let sectionGlobalSettings, sectionSubjectSettings;
+let globalExamTimeSlider, globalExamTime, globalPracticeMode;
+let subjectSettingsTitle, subjectCountSegments, subjectCustomCountContainer, subjectCustomCount, subjectTotalQIndicator;
+let subjectShuffleQ, subjectShuffleA, mathTypeSelectionContainer, mathTypesGrid;
 
 document.addEventListener('DOMContentLoaded', async () => {
   QuizUtils.initTheme();
+
+  // Bind Sidebar DOM elements
+  sidebarOverlay = document.getElementById('sidebar-overlay');
+  sidebarPanel = document.getElementById('sidebar-panel');
+  sidebarTitle = document.getElementById('sidebar-title');
+  sidebarClose = document.getElementById('sidebar-close');
+  sidebarSaveBtn = document.getElementById('sidebar-save-btn');
+  sidebarHeaderText = document.getElementById('sidebar-header-text');
+
+  sectionGlobalSettings = document.getElementById('section-global-settings');
+  sectionSubjectSettings = document.getElementById('section-subject-settings');
+
+  globalExamTimeSlider = document.getElementById('global-exam-time-slider');
+  globalExamTime = document.getElementById('global-exam-time');
+  globalPracticeMode = document.getElementById('global-practice-mode');
+
+  subjectSettingsTitle = document.getElementById('subject-settings-title');
+  subjectCountSegments = document.getElementById('subject-count-segments');
+  subjectCustomCountContainer = document.getElementById('subject-custom-count-container');
+  subjectCustomCount = document.getElementById('subject-custom-count');
+  subjectTotalQIndicator = document.getElementById('subject-total-q-indicator');
+  subjectShuffleQ = document.getElementById('subject-shuffle-q');
+  subjectShuffleA = document.getElementById('subject-shuffle-a');
+  mathTypeSelectionContainer = document.getElementById('math-type-selection-container');
+  mathTypesGrid = document.getElementById('math-types-grid');
+
+  // Sidebar events
+  sidebarClose.addEventListener('click', closeSettingsSidebar);
+  sidebarOverlay.addEventListener('click', closeSettingsSidebar);
+
+  // Time slider sync
+  globalExamTimeSlider.addEventListener('input', e => {
+    globalExamTime.value = e.target.value;
+  });
+  globalExamTime.addEventListener('input', e => {
+    let val = parseInt(e.target.value) || 60;
+    val = Math.max(1, Math.min(300, val));
+    globalExamTimeSlider.value = val;
+  });
+
+  // Quantity Segmented Control click handler
+  subjectCountSegments.querySelectorAll('.segment-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      subjectCountSegments.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (btn.dataset.value === 'custom') {
+        subjectCustomCountContainer.classList.remove('hidden');
+      } else {
+        subjectCustomCountContainer.classList.add('hidden');
+      }
+    });
+  });
+
+  // Sidebar Save Click Handler
+  sidebarSaveBtn.addEventListener('click', () => {
+    // Save global settings
+    const gTime = parseInt(globalExamTime.value) || 60;
+    const gImm = globalPracticeMode.checked;
+    QuizUtils.saveSettings('global', { time: gTime, immFB: gImm });
+
+    // Save subject settings if a subject is active
+    if (activeSidebarSubjectId && activeSidebarSubjectId !== 'global') {
+      const activeBtn = subjectCountSegments.querySelector('.segment-btn.active');
+      const segmentVal = activeBtn ? activeBtn.dataset.value : '20';
+
+      let count = 20;
+      let allQ = false;
+      if (segmentVal === 'all') {
+        allQ = true;
+        count = subjectTotalQuestions[activeSidebarSubjectId] || 20;
+      } else if (segmentVal === 'custom') {
+        count = parseInt(subjectCustomCount.value) || 20;
+      } else {
+        count = parseInt(segmentVal) || 20;
+      }
+
+      const shuffleQ = subjectShuffleQ.checked;
+      const shuffleA = subjectShuffleA.checked;
+
+      let types = [];
+      if (mathTypesGrid.querySelectorAll('.chip-btn.active').length) {
+        mathTypesGrid.querySelectorAll('.chip-btn.active').forEach(chip => types.push(chip.dataset.value));
+      }
+
+      QuizUtils.saveSettings('subject_' + activeSidebarSubjectId, {
+        count,
+        allQ,
+        shuffleQ,
+        shuffleA,
+        types
+      });
+    }
+
+    updateAllStartLinks();
+    closeSettingsSidebar();
+    QuizUtils.toast('Настройки сохранены', 'success');
+  });
+
+  // Global settings toolbar button
+  document.getElementById('btn-global-settings').addEventListener('click', () => {
+    openSettingsSidebar('global');
+  });
 
   try {
     const manifest = await QuizUtils.loadManifest();
@@ -160,10 +366,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     manifest.subjects.forEach(s => {
       QuizUtils.loadQuestions(s.file).then(qs => {
         const total = qs.length;
+        subjectTotalQuestions[s.id] = total;
+        
         const countEl = document.getElementById('q-count-' + s.id);
-        const totalEl = document.getElementById('q-total-' + s.id);
         if (countEl) countEl.textContent = total + ' вопр.';
-        if (totalEl) totalEl.textContent = total;
+        
+        // update start links once count is loaded to generate correct all-q link parameter values
+        updateAllStartLinks();
       }).catch(() => {
         const el = document.getElementById('q-count-' + s.id);
         if (el) el.textContent = '';
@@ -179,20 +388,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('history-modal').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeHistoryModal();
   });
-
-  // Load global settings
-  const gSettings = QuizUtils.loadSettings('global');
-  if (gSettings.time) document.getElementById('global-exam-time').value = gSettings.time;
-  if (gSettings.immFB !== undefined) document.getElementById('global-practice-mode').checked = gSettings.immFB;
-
-  function saveGlobalSettings() {
-    QuizUtils.saveSettings('global', {
-      time: document.getElementById('global-exam-time').value,
-      immFB: document.getElementById('global-practice-mode').checked
-    });
-  }
-  document.getElementById('global-exam-time').addEventListener('change', saveGlobalSettings);
-  document.getElementById('global-practice-mode').addEventListener('change', saveGlobalSettings);
 
   // Search logic
   const searchInput = document.getElementById('search-subjects');
@@ -213,8 +408,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 function renderCard(subject, containerId) {
   const history  = QuizUtils.loadHistory(subject.id);
   const answered = QuizUtils.loadAnswered(subject.id);
-  const saved    = QuizUtils.loadSettings('subject_' + subject.id);
-  const quizPage = subject.type === 'math' ? 'math-quiz.html' : 'quiz.html';
 
   const card = document.createElement('div');
   card.className = 'subject-card';
@@ -227,11 +420,6 @@ function renderCard(subject, containerId) {
     : '<span class="text-faint text-xs">нет истории</span>';
 
   const answeredCount = answered.size;
-  const defaultCount = 20;
-  const count    = saved.count    !== undefined ? saved.count    : defaultCount;
-  const allQ     = saved.allQ     !== undefined ? saved.allQ     : false;
-  const shuffleQ = saved.shuffleQ !== undefined ? saved.shuffleQ : true;
-  const shuffleA = saved.shuffleA !== undefined ? saved.shuffleA : true;
 
   card.innerHTML = `
     <div class="subject-card-header">
@@ -250,111 +438,134 @@ function renderCard(subject, containerId) {
 
     <div class="subject-card-history">${historyHtml}</div>
 
-    <div class="settings-drawer" id="drawer-${subject.id}">
-      <div class="form-row" style="margin-bottom:8px;">
-        <label>Количество вопросов</label>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <input type="number" class="setting-count" min="1" value="${count}" style="width:72px;" ${allQ ? 'disabled' : ''}>
-          <label class="checkbox-row" style="margin-bottom:0;">
-            <input type="checkbox" class="setting-all-q" ${allQ ? 'checked' : ''}>
-            <span>Все (<span id="q-total-${subject.id}">...</span>)</span>
-          </label>
-        </div>
-      </div>
-      <label class="checkbox-row" style="margin-bottom:6px;">
-        <input type="checkbox" class="setting-shuffle-q" ${shuffleQ ? 'checked' : ''}>
-        <span>Перемешать вопросы</span>
-      </label>
-      <label class="checkbox-row">
-        <input type="checkbox" class="setting-shuffle-a" ${shuffleA ? 'checked' : ''}>
-        <span>Перемешать ответы</span>
-      </label>
-      ${subject.type === 'math' ? `
-      <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-        <label style="font-size:0.85rem; display:block; margin-bottom:8px;">Типы для тренировки:</label>
-        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
-          ${Array.from({length: 14}, (_, i) => `
-            <label class="checkbox-row" style="margin-bottom:0;">
-              <input type="checkbox" class="setting-type-cb" value="${i+1}" ${saved.types && !saved.types.includes(String(i+1)) ? '' : 'checked'}>
-              <span style="font-size:0.8rem;">${i+1}</span>
-            </label>
-          `).join('')}
-        </div>
-      </div>
-      ` : ''}
-    </div>
-
     <div class="subject-card-actions">
-      <a href="${quizPage}?subject=${subject.id}&mode=practice" class="btn btn-secondary btn-sm" id="btn-practice-${subject.id}">Тренировка</a>
-      <a href="${quizPage}?subject=${subject.id}&mode=exam" class="btn btn-primary btn-sm" id="btn-exam-${subject.id}">Экзамен</a>
+      <a href="" class="btn btn-secondary btn-sm" id="btn-practice-${subject.id}">Тренировка</a>
+      <a href="" class="btn btn-primary btn-sm" id="btn-exam-${subject.id}">Экзамен</a>
     </div>
   `;
 
   document.getElementById(containerId).appendChild(card);
 
-  // Gear toggle
-  const drawer  = card.querySelector('.settings-drawer');
-  const gearBtn = card.querySelector('.gear-btn');
-  gearBtn.addEventListener('click', () => drawer.classList.toggle('open'));
-
-  // Save settings on change
-  const countEl    = card.querySelector('.setting-count');
-  const allQEl     = card.querySelector('.setting-all-q');
-  const shuffleQEl = card.querySelector('.setting-shuffle-q');
-  const shuffleAEl = card.querySelector('.setting-shuffle-a');
-
-  allQEl.addEventListener('change', () => {
-    countEl.disabled = allQEl.checked;
-    saveCardSettings();
+  // Bind gear-btn click
+  card.querySelector('.gear-btn').addEventListener('click', () => {
+    openSettingsSidebar(subject.id);
   });
+}
 
-  function saveCardSettings() {
-    const val = parseInt(countEl.value) || defaultCount;
-    let types = [];
-    if (subject.type === 'math') {
-      card.querySelectorAll('.setting-type-cb:checked').forEach(cb => types.push(cb.value));
-    }
-    QuizUtils.saveSettings('subject_' + subject.id, {
-      count:    val,
-      allQ:     allQEl.checked,
-      shuffleQ: shuffleQEl.checked,
-      shuffleA: shuffleAEl.checked,
-      types:    types
-    });
-    updateStartLinks();
-  }
+function updateAllStartLinks() {
+  const gSettings = QuizUtils.loadSettings('global');
+  const gTime = gSettings.time || '60';
+  const gImm  = gSettings.immFB ? '1' : '0';
 
-  function updateStartLinks() {
-    const c      = parseInt(countEl.value) || defaultCount;
-    const isAllQ = allQEl.checked;
-    const sq     = shuffleQEl.checked ? '1' : '0';
-    const sa     = shuffleAEl.checked ? '1' : '0';
+  allSubjects.forEach(subject => {
+    const saved = QuizUtils.loadSettings('subject_' + subject.id);
+    const quizPage = subject.type === 'math' ? 'math-quiz.html' : 'quiz.html';
 
-    const gTime = document.getElementById('global-exam-time').value || '60';
-    const gImm  = document.getElementById('global-practice-mode').checked ? '1' : '0';
+    const count    = saved.count !== undefined ? saved.count : 20;
+    const allQ     = saved.allQ  !== undefined ? saved.allQ  : false;
+    const shuffleQ = saved.shuffleQ !== undefined ? saved.shuffleQ : true;
+    const shuffleA = saved.shuffleA !== undefined ? saved.shuffleA : true;
 
-    const countParam = isAllQ ? '' : `&count=${c}`;
-    const allQParam  = isAllQ ? '&allQ=1' : '';
+    const countParam = allQ ? '' : `&count=${count}`;
+    const allQParam  = allQ ? '&allQ=1' : '';
+    const sq         = shuffleQ ? '1' : '0';
+    const sa         = shuffleA ? '1' : '0';
+
     const base = `${quizPage}?subject=${subject.id}${countParam}${allQParam}&shuffleQ=${sq}&shuffleA=${sa}&time=${gTime}&immFB=${gImm}`;
     let practiceUrl = base + '&mode=practice';
     if (subject.type === 'math') {
-      const typesStr = Array.from(card.querySelectorAll('.setting-type-cb:checked')).map(cb => cb.value).join(',');
-      practiceUrl += '&types=' + encodeURIComponent(typesStr);
+      const selectedTypes = saved.types || Array.from({length: 14}, (_, i) => String(i+1));
+      practiceUrl += '&types=' + encodeURIComponent(selectedTypes.join(','));
     }
-    document.getElementById('btn-practice-' + subject.id).href = practiceUrl;
-    document.getElementById('btn-exam-'     + subject.id).href = base + '&mode=exam';
+
+    const btnPractice = document.getElementById('btn-practice-' + subject.id);
+    const btnExam = document.getElementById('btn-exam-' + subject.id);
+    if (btnPractice) btnPractice.href = practiceUrl;
+    if (btnExam) btnExam.href = base + '&mode=exam';
+  });
+}
+
+/* ============================================================
+   Sidebar open/close logic
+============================================================ */
+function openSettingsSidebar(subjectId) {
+  activeSidebarSubjectId = subjectId;
+
+  // Pre-load global settings
+  const gSettings = QuizUtils.loadSettings('global');
+  const gTime = gSettings.time || 60;
+  globalExamTimeSlider.value = gTime;
+  globalExamTime.value = gTime;
+  globalPracticeMode.checked = gSettings.immFB !== undefined ? gSettings.immFB : false;
+
+  if (subjectId === 'global') {
+    sidebarHeaderText.textContent = 'Глобальные настройки';
+    sectionGlobalSettings.classList.remove('hidden');
+    sectionSubjectSettings.classList.add('hidden');
+  } else {
+    const subject = allSubjects.find(s => s.id === subjectId);
+    if (!subject) return;
+
+    sidebarHeaderText.textContent = subject.name;
+    sectionGlobalSettings.classList.remove('hidden');
+    sectionSubjectSettings.classList.remove('hidden');
+
+    // Pre-load subject settings
+    const saved = QuizUtils.loadSettings('subject_' + subjectId);
+    const totalQ = subjectTotalQuestions[subjectId] || 0;
+    subjectTotalQIndicator.textContent = totalQ;
+
+    subjectShuffleQ.checked = saved.shuffleQ !== undefined ? saved.shuffleQ : true;
+    subjectShuffleA.checked = saved.shuffleA !== undefined ? saved.shuffleA : true;
+
+    const count = saved.count !== undefined ? saved.count : 20;
+    const allQ  = saved.allQ  !== undefined ? saved.allQ  : false;
+
+    subjectCountSegments.querySelectorAll('.segment-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    subjectCustomCountContainer.classList.add('hidden');
+
+    if (allQ) {
+      const allBtn = subjectCountSegments.querySelector('[data-value="all"]');
+      if (allBtn) allBtn.classList.add('active');
+    } else if ([10, 20, 30, 50].includes(count)) {
+      const segmentBtn = subjectCountSegments.querySelector(`[data-value="${count}"]`);
+      if (segmentBtn) segmentBtn.classList.add('active');
+    } else {
+      const customBtn = subjectCountSegments.querySelector('[data-value="custom"]');
+      if (customBtn) customBtn.classList.add('active');
+      subjectCustomCountContainer.classList.remove('hidden');
+      subjectCustomCount.value = count;
+    }
+
+    if (subject.type === 'math') {
+      mathTypeSelectionContainer.classList.remove('hidden');
+      mathTypesGrid.innerHTML = '';
+      for (let i = 1; i <= 14; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip-btn';
+        btn.textContent = i;
+        btn.dataset.value = i;
+        const isSelected = !saved.types || saved.types.includes(String(i));
+        if (isSelected) btn.classList.add('active');
+        btn.addEventListener('click', () => btn.classList.toggle('active'));
+        mathTypesGrid.appendChild(btn);
+      }
+    } else {
+      mathTypeSelectionContainer.classList.add('hidden');
+    }
   }
 
-  countEl.addEventListener('change',    saveCardSettings);
-  shuffleQEl.addEventListener('change', saveCardSettings);
-  shuffleAEl.addEventListener('change', saveCardSettings);
-  card.querySelectorAll('.setting-type-cb').forEach(cb => cb.addEventListener('change', saveCardSettings));
-  
-  // Also listen to global settings
-  document.getElementById('global-exam-time').addEventListener('input', updateStartLinks);
-  document.getElementById('global-practice-mode').addEventListener('change', updateStartLinks);
+  sidebarOverlay.classList.add('open');
+  sidebarPanel.classList.add('open');
+}
 
-  updateStartLinks();
+function closeSettingsSidebar() {
+  sidebarOverlay.classList.remove('open');
+  sidebarPanel.classList.remove('open');
+  activeSidebarSubjectId = null;
 }
 
 /* ============================================================
@@ -363,47 +574,44 @@ function renderCard(subject, containerId) {
 function renderHistorySection(subjects) {
   const container = document.getElementById('history-entries');
   container.innerHTML = '';
-  let hasAny = false;
 
-  subjects.forEach(subject => {
-    const history = QuizUtils.loadHistory(subject.id);
-    if (!history.length) return;
-    hasAny = true;
+  const globalHistory = QuizUtils.loadGlobalHistory();
+  if (!globalHistory.length) {
+    document.getElementById('history-section').classList.add('hidden');
+    return;
+  }
 
-    const group = document.createElement('div');
-    group.className = 'history-subject-group';
-    group.innerHTML = `<div class="history-subject-label">${subject.name}</div>`;
+  globalHistory.forEach((entry, idx) => {
+    const subject = subjects.find(s => s.id === entry.subjectId);
+    const subjectName = subject ? subject.name : 'Неизвестный предмет';
 
-    history.forEach((entry, idx) => {
-      const mode  = entry.mode === 'exam' ? 'Экзамен' : 'Тренировка';
-      const score = entry.mode === 'exam'
-        ? `${entry.score}/${entry.total} баллов`
-        : `${entry.percent}% (${entry.score}/${entry.total})`;
+    const mode  = entry.mode === 'exam' ? 'Экзамен' : 'Тренировка';
+    const score = entry.mode === 'exam'
+      ? `${entry.score}/${entry.total} баллов`
+      : `${entry.percent}% (${entry.score}/${entry.total})`;
 
-      const isPassed = entry.mode === 'exam'
-        ? (entry.score >= entry.total * 0.6)
-        : (entry.percent >= 60);
+    const isPassed = entry.mode === 'exam'
+      ? (entry.score >= entry.total * 0.6)
+      : (entry.percent >= 60);
 
-      const el = document.createElement('div');
-      el.className = 'history-entry';
-      el.innerHTML = `
-        <span class="history-entry-score">${score}</span>
-        <span class="history-entry-meta">${QuizUtils.formatDate(entry.date)} &middot; ${mode}</span>
-        <span class="history-entry-badge">
-          <span class="badge ${isPassed ? 'badge-success' : 'badge-danger'}">${isPassed ? 'Сдан' : 'Не сдан'}</span>
-        </span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
-      `;
-      el.addEventListener('click', () => openHistoryModal(subject, entry, idx));
-      group.appendChild(el);
-    });
-
-    container.appendChild(group);
+    const el = document.createElement('div');
+    el.className = 'history-entry';
+    el.innerHTML = `
+      <span class="history-entry-score">${score}</span>
+      <div class="history-entry-meta" style="display:flex; flex-direction:column; gap:4px; flex:1; min-width:0;">
+        <span style="font-weight:700; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.92rem;">${subjectName}</span>
+        <span>${QuizUtils.formatDate(entry.date)} &middot; ${mode}</span>
+      </div>
+      <span class="history-entry-badge">
+        <span class="badge ${isPassed ? 'badge-success' : 'badge-danger'}">${isPassed ? 'Сдан' : 'Не сдан'}</span>
+      </span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
+    `;
+    el.addEventListener('click', () => openHistoryModal(subject || { name: subjectName, id: entry.subjectId }, entry, idx));
+    container.appendChild(el);
   });
 
-  if (hasAny) {
-    document.getElementById('history-section').classList.remove('hidden');
-  }
+  document.getElementById('history-section').classList.remove('hidden');
 }
 
 function openHistoryModal(subject, entry, idx) {

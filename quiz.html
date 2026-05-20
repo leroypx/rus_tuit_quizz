@@ -310,13 +310,45 @@ function renderQuestion() {
 function selectAnswer(key) {
   if (paramMode === 'practice' && paramImmFB && userAnswers[currentIndex]) return;
   userAnswers[currentIndex] = key;
-  renderQuestion();
+  
+  // Directly update option items in DOM to prevent jerking and re-animation
+  const q = sessionQuestions[currentIndex];
+  const correctKey = QuizUtils.normalizeAnswer(q['Правильный ответ']);
+  const grid = document.getElementById('options-grid');
+  if (grid) {
+    const items = grid.querySelectorAll('.option-item');
+    items.forEach(item => {
+      const itemKey = item.dataset.key;
+      item.classList.remove('selected', 'correct', 'incorrect');
+      if (itemKey === key) {
+        item.classList.add('selected');
+      }
+      if (paramMode === 'practice' && paramImmFB) {
+        if (itemKey === correctKey) {
+          item.classList.add('correct');
+        }
+        if (itemKey === key && key !== correctKey) {
+          item.classList.add('incorrect');
+        }
+      }
+    });
+  }
+
+  // Update progress text
+  const total = sessionQuestions.length;
+  const answeredCount = Object.keys(userAnswers).length;
+  const progressEl = document.getElementById('quiz-progress');
+  if (progressEl) {
+    progressEl.textContent = `${answeredCount}/${total}`;
+  }
+
   renderNavDots();
 }
 
 function navigate(dir) {
   currentIndex = Math.max(0, Math.min(sessionQuestions.length - 1, currentIndex + dir));
   renderQuestion();
+  renderNavDots();
 }
 
 /* ============================================================
@@ -324,12 +356,29 @@ function navigate(dir) {
 ============================================================ */
 function renderNavDots() {
   const container = document.getElementById('nav-dots-container');
+  if (!container) return;
   container.innerHTML = '';
   sessionQuestions.forEach((_, i) => {
     const dot = document.createElement('div');
+    
+    let extraClass = '';
+    if (userAnswers[i] !== undefined) {
+      if (paramMode === 'practice' && paramImmFB) {
+        const correctKey = QuizUtils.normalizeAnswer(sessionQuestions[i]['Правильный ответ']);
+        if (QuizUtils.normalizeAnswer(userAnswers[i]) === correctKey) {
+          extraClass = ' correct';
+        } else {
+          extraClass = ' incorrect';
+        }
+      } else {
+        extraClass = ' answered';
+      }
+    }
+
     dot.className = 'nav-dot'
       + (i === currentIndex ? ' current' : '')
-      + (userAnswers[i] !== undefined && i !== currentIndex ? ' answered' : '');
+      + extraClass;
+      
     dot.textContent = i + 1;
     dot.addEventListener('click', () => { currentIndex = i; renderQuestion(); renderNavDots(); });
     container.appendChild(dot);

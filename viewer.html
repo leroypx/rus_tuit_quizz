@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>База вопросов — Просмотр</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <style>
+    /* Viewer local style tweaks */
+    #viewer-area { display: flex; flex-direction: column; flex: 1; }
+    .viewer-toolbar {
+      position: sticky;
+      top: 64px;
+      z-index: 90;
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      background: rgba(34, 34, 59, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      min-height: 64px;
+    }
+    .viewer-toolbar .toolbar-spacer { flex: 1; min-width: 16px; }
+    .type-tag {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+    }
+    /* Stats banner */
+    .viewer-stats-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      background: rgba(154, 140, 152, 0.05);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-2);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body class="page-viewer">
+<div class="app" style="min-height: 100vh; display: flex; flex-direction: column;">
+
+  <!-- Header -->
+  <header class="app-header">
+    <a href="index.html" class="logo">
+      <img src="assets/logo.png" alt="QuizPlatform" class="logo-img" draggable="false" onerror="this.style.display='none'">
+    </a>
+    <span class="header-spacer"></span>
+    <span id="loaded-name" class="text-sm text-muted" style="margin-right:12px;"></span>
+    <a href="index.html" class="btn btn-secondary btn-sm" style="margin-right:6px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Главная
+    </a>
+    <a href="editor.html" class="btn btn-secondary btn-sm" style="margin-right:6px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Редактор
+    </a>
+    <button id="theme-toggle" class="btn-icon" title="Сменить тему"></button>
+  </header>
+
+  <!-- Toolbar -->
+  <div class="viewer-toolbar">
+    <!-- Subject Selection -->
+    <div class="premium-select-wrap">
+      <select id="subject-select" class="premium-select" style="max-width:200px;">
+        <option value="">— предмет —</option>
+      </select>
+    </div>
+
+    <!-- Search -->
+    <input type="text" id="search-input" class="premium-input" placeholder="Поиск по тексту или ID..." style="width:180px;">
+
+    <!-- Filter Type -->
+    <div class="premium-select-wrap">
+      <select id="filter-type" class="premium-select">
+        <option value="">Все типы</option>
+      </select>
+    </div>
+
+    <div class="viewer-toolbar-divider" style="width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 4px;"></div>
+
+    <!-- Layout & Mode options (only styled when subject loaded) -->
+    <div id="view-options" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      
+      <!-- Columns select -->
+      <div class="premium-select-wrap">
+        <select id="cols-select" class="premium-select">
+          <option value="1">1 столбец</option>
+          <option value="2" selected>2 столбца</option>
+          <option value="3">3 столбца</option>
+        </select>
+      </div>
+
+      <!-- Pagination select -->
+      <div class="premium-select-wrap">
+        <select id="paged-select" class="premium-select">
+          <option value="paged">Постранично</option>
+          <option value="all">Все разом</option>
+        </select>
+      </div>
+
+      <!-- Page Size (only shown when paginated is active) -->
+      <div class="premium-select-wrap" id="page-size-wrap">
+        <select id="page-size-select" class="premium-select">
+          <option value="10">10 на стр.</option>
+          <option value="20" selected>20 на стр.</option>
+          <option value="50">50 на стр.</option>
+          <option value="100">100 на стр.</option>
+        </select>
+      </div>
+
+      <!-- Compact Mode select -->
+      <div class="premium-select-wrap">
+        <select id="mode-select" class="premium-select">
+          <option value="normal">Обычный вид</option>
+          <option value="compact">Компактный вид</option>
+        </select>
+      </div>
+
+      <!-- Compact Answers Visibility -->
+      <div class="premium-select-wrap" id="compact-answers-wrap" style="display:none;">
+        <select id="compact-answers-select" class="premium-select">
+          <option value="show" selected>Показывать ответы</option>
+          <option value="hide">Скрывать ответы</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="viewer-toolbar-spacer" style="flex:1;"></div>
+
+    <!-- Stats badge -->
+    <span id="stat-chip" class="badge hidden" style="background:var(--surface2);color:var(--text-2);border:1px solid var(--border);text-transform:none;font-size:0.78rem;font-weight:500;letter-spacing:0;">0 вопросов</span>
+  </div>
+
+  <!-- Main Content -->
+  <main class="app-main" style="padding:0; flex:1; display:flex; flex-direction:column;">
+
+    <!-- Empty State -->
+    <div id="empty-state" class="empty-state" style="flex:1; min-height:380px; display:flex; flex-direction:column; justify-content:center;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <p>Выберите учебный предмет из списка вверху для просмотра базы тестов</p>
+    </div>
+
+    <!-- Viewer Area (Loaded) -->
+    <div id="viewer-area" class="hidden">
+      <!-- Stats banner -->
+      <div class="viewer-stats-banner">
+        <span id="banner-subject-name" style="font-weight: 700; color: var(--text);"></span>
+        <span id="banner-breakdown"></span>
+      </div>
+
+      <!-- Cards Grid -->
+      <div id="viewer-grid" class="viewer-grid cols-2"></div>
+
+      <!-- Empty Filter State -->
+      <div id="filter-empty" class="empty-state hidden" style="padding:48px;">
+        <p>Вопросы по вашему запросу не найдены</p>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div id="pagination-controls" class="pagination-row"></div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="assets/quiz.js"></script>
+<script>
+/* ============================================================
+   State Variables
+   ============================================================ */
+let questions = [];
+let filteredQuestions = [];
+let currentPage = 1;
+let currentSubjectName = '';
+
+/* ============================================================
+   Init DOM Events
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
+  QuizUtils.initTheme();
+
+  // Load subject manifest
+  try {
+    const manifest = await QuizUtils.loadManifest();
+    const select = document.getElementById('subject-select');
+    manifest.subjects.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name + (s.type === 'math' ? ' [Math]' : '');
+      opt.dataset.file = s.file;
+      opt.dataset.name = s.name;
+      select.appendChild(opt);
+    });
+  } catch (e) {
+    console.warn('Failed to load subject manifest', e);
+  }
+
+  // Load saved viewer settings
+  try {
+    const savedViewer = JSON.parse(localStorage.getItem('quizzer_viewer_settings') || '{}');
+    if (savedViewer.cols) document.getElementById('cols-select').value = savedViewer.cols;
+    if (savedViewer.paged) document.getElementById('paged-select').value = savedViewer.paged;
+    if (savedViewer.pageSize) document.getElementById('page-size-select').value = savedViewer.pageSize;
+    if (savedViewer.mode) document.getElementById('mode-select').value = savedViewer.mode;
+    if (savedViewer.compactAnswers) document.getElementById('compact-answers-select').value = savedViewer.compactAnswers;
+  } catch (e) {
+    console.warn('Failed to load viewer settings', e);
+  }
+
+  // Bind layout events
+  document.getElementById('subject-select').addEventListener('change', loadFromSelect);
+  document.getElementById('search-input').addEventListener('input', () => { currentPage = 1; applyFilters(); });
+  document.getElementById('filter-type').addEventListener('change', () => { currentPage = 1; applyFilters(); });
+  
+  // Layout parameters changes with persistence
+  document.getElementById('cols-select').addEventListener('change', () => {
+    updateGridLayout();
+    saveViewerSettings();
+  });
+  document.getElementById('paged-select').addEventListener('change', () => {
+    togglePaginationVisibility();
+    saveViewerSettings();
+  });
+  document.getElementById('page-size-select').addEventListener('change', () => {
+    currentPage = 1;
+    renderViewerGrid();
+    saveViewerSettings();
+  });
+  document.getElementById('mode-select').addEventListener('change', () => {
+    updateCompactAnswersVisibility();
+    renderViewerGrid();
+    saveViewerSettings();
+  });
+  document.getElementById('compact-answers-select').addEventListener('change', () => {
+    renderViewerGrid();
+    saveViewerSettings();
+  });
+
+  // Apply initial layout and pagination states
+  updateGridLayout();
+  const isPaged = document.getElementById('paged-select').value === 'paged';
+  const sizeWrap = document.getElementById('page-size-wrap');
+  if (isPaged) {
+    sizeWrap.classList.remove('hidden');
+  } else {
+    sizeWrap.classList.add('hidden');
+  }
+
+  // Hidden layout container by default until subject loaded
+  toggleViewControls(false);
+});
+
+function saveViewerSettings() {
+  try {
+    const settings = {
+      cols: document.getElementById('cols-select').value,
+      paged: document.getElementById('paged-select').value,
+      pageSize: document.getElementById('page-size-select').value,
+      mode: document.getElementById('mode-select').value,
+      compactAnswers: document.getElementById('compact-answers-select').value
+    };
+    localStorage.setItem('quizzer_viewer_settings', JSON.stringify(settings));
+  } catch (e) {
+    console.warn('Failed to save viewer settings', e);
+  }
+}
+
+/* ============================================================
+   Load & Prepare Data
+   ============================================================ */
+async function loadFromSelect() {
+  const select = document.getElementById('subject-select');
+  const opt = select.options[select.selectedIndex];
+  if (!opt || !opt.dataset.file) {
+    toggleViewControls(false);
+    document.getElementById('empty-state').classList.remove('hidden');
+    document.getElementById('viewer-area').classList.add('hidden');
+    return;
+  }
+
+  try {
+    const data = await QuizUtils.loadQuestions(opt.dataset.file);
+    currentSubjectName = opt.dataset.name || opt.textContent;
+    questions = data.map((q, i) => ({
+      id: q.id || `q${String(i + 1).padStart(3, '0')}`,
+      ...q,
+    }));
+
+    document.getElementById('loaded-name').textContent = currentSubjectName;
+    document.getElementById('banner-subject-name').textContent = currentSubjectName;
+    document.getElementById('empty-state').classList.add('hidden');
+    document.getElementById('viewer-area').classList.remove('hidden');
+
+    toggleViewControls(true);
+    currentPage = 1;
+    updateFilterOptions();
+    applyFilters();
+
+  } catch (e) {
+    QuizUtils.toast('Ошибка загрузки тестов', 'danger');
+  }
+}
+
+function toggleViewControls(show) {
+  const viewOptions = document.getElementById('view-options');
+  if (show) {
+    viewOptions.style.opacity = '1';
+    viewOptions.style.pointerEvents = 'auto';
+    updateCompactAnswersVisibility();
+  } else {
+    viewOptions.style.opacity = '0.3';
+    viewOptions.style.pointerEvents = 'none';
+  }
+}
+
+function updateCompactAnswersVisibility() {
+  const viewMode = document.getElementById('mode-select').value;
+  const wrap = document.getElementById('compact-answers-wrap');
+  if (!wrap) return;
+  if (viewMode === 'compact') {
+    wrap.style.display = 'inline-block';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function updateFilterOptions() {
+  const types = [...new Set(questions.map(q => q['Тип вопроса']).filter(Boolean))].sort((a,b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    return isNaN(na) || isNaN(nb) ? String(a).localeCompare(String(b)) : na - nb;
+  });
+  const sel = document.getElementById('filter-type');
+  sel.innerHTML = '<option value="">Все типы</option>';
+  types.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = `Тип ${t}`;
+    sel.appendChild(opt);
+  });
+}
+
+function updateGridLayout() {
+  const cols = document.getElementById('cols-select').value;
+  const grid = document.getElementById('viewer-grid');
+  grid.className = `viewer-grid cols-${cols}`;
+}
+
+function togglePaginationVisibility() {
+  const isPaged = document.getElementById('paged-select').value === 'paged';
+  const sizeWrap = document.getElementById('page-size-wrap');
+  if (isPaged) {
+    sizeWrap.classList.remove('hidden');
+  } else {
+    sizeWrap.classList.add('hidden');
+  }
+  currentPage = 1;
+  renderViewerGrid();
+}
+
+/* ============================================================
+   Filter & Render Core
+   ============================================================ */
+function applyFilters() {
+  const filterType = document.getElementById('filter-type').value;
+  const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+
+  let result = [...questions];
+  if (filterType) {
+    result = result.filter(q => q['Тип вопроса'] === filterType);
+  }
+  if (searchVal) {
+    result = result.filter(q => {
+      const text = String(q['Вопрос'] || '').replace(/<[^>]+>/g,'').toLowerCase();
+      return text.includes(searchVal) || String(q.id || '').toLowerCase().includes(searchVal);
+    });
+  }
+
+  filteredQuestions = result;
+  
+  // Update badges
+  const statChip = document.getElementById('stat-chip');
+  statChip.classList.remove('hidden');
+  const distinctTypes = [...new Set(result.map(q => q['Тип вопроса']).filter(Boolean))];
+  statChip.textContent = `${result.length} из ${questions.length} вопр.`;
+
+  document.getElementById('banner-breakdown').textContent = 
+    `Показано: ${result.length} вопросов${distinctTypes.length ? ' · разделено на ' + distinctTypes.length + ' тип(ов)' : ''}`;
+
+  renderViewerGrid();
+}
+
+function renderViewerGrid() {
+  const grid = document.getElementById('viewer-grid');
+  const empty = document.getElementById('filter-empty');
+  const pagedVal = document.getElementById('paged-select').value;
+  const viewMode = document.getElementById('mode-select').value; // normal vs compact
+
+  grid.innerHTML = '';
+  
+  if (!filteredQuestions.length) {
+    empty.classList.remove('hidden');
+    document.getElementById('pagination-controls').innerHTML = '';
+    return;
+  }
+  empty.classList.add('hidden');
+
+  let itemsToRender = [...filteredQuestions];
+
+  // Apply pagination if enabled
+  if (pagedVal === 'paged') {
+    const pageSize = parseInt(document.getElementById('page-size-select').value);
+    const startIdx = (currentPage - 1) * pageSize;
+    itemsToRender = filteredQuestions.slice(startIdx, startIdx + pageSize);
+    renderPaginationControls(filteredQuestions.length, pageSize);
+  } else {
+    document.getElementById('pagination-controls').innerHTML = '';
+  }
+
+  itemsToRender.forEach(q => {
+    const correctKey = QuizUtils.normalizeAnswer(q['Правильный ответ']);
+    const keys = ['A','B','C','D'].filter(k => q[k]);
+
+    const card = document.createElement('div');
+    card.className = `viewer-card ${viewMode === 'compact' ? 'compact' : ''}`;
+    card.id = `card-${q.id}`;
+
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;align-items:center;justify-content:between;margin-bottom:8px;font-size:0.8rem;';
+    header.innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-family:monospace;font-weight:700;color:var(--text-3);">${q.id}</span>
+        ${q['Тип вопроса'] ? `<span class="type-tag">Тип ${q['Тип вопроса']}</span>` : ''}
+      </div>
+    `;
+    card.appendChild(header);
+
+    // Question body
+    const qEl = document.createElement('div');
+    qEl.className = 'question-text selectable';
+    QuizUtils.renderContent(qEl, q['Вопрос'] || '');
+    card.appendChild(qEl);
+
+    // Options (Standard vs Compact)
+    if (viewMode === 'normal') {
+      const optsEl = document.createElement('div');
+      optsEl.className = 'preview-options-grid';
+      keys.forEach(key => {
+        const optEl = document.createElement('div');
+        optEl.className = 'preview-option' + (key === correctKey ? ' correct-opt' : '');
+        const keyEl = document.createElement('span');
+        keyEl.style.cssText = 'font-weight:700;min-width:20px;';
+        keyEl.textContent = key;
+        const textEl = document.createElement('span');
+        textEl.className = 'selectable';
+        textEl.style.flex = '1';
+        QuizUtils.renderContent(textEl, q[key] || '');
+        optEl.appendChild(keyEl);
+        optEl.appendChild(textEl);
+        optsEl.appendChild(optEl);
+      });
+      card.appendChild(optsEl);
+    } else {
+      // Compact: Collapsible Answer
+      const showAnswersGlobal = document.getElementById('compact-answers-select').value === 'show';
+
+      const answerBlock = document.createElement('div');
+      answerBlock.className = 'compact-answer-block';
+      answerBlock.style.cssText = 'display:flex;align-items:center;gap:10px;margin-top:10px;';
+
+      const showBtn = document.createElement('button');
+      showBtn.className = 'show-answer-btn';
+      showBtn.textContent = showAnswersGlobal ? 'Скрыть ответ' : 'Показать ответ';
+
+      const badgeSpan = document.createElement('span');
+      badgeSpan.style.cssText = 'font-size:0.85rem;font-weight:700;color:var(--success);';
+      badgeSpan.style.display = showAnswersGlobal ? 'inline' : 'none';
+      badgeSpan.textContent = `Ответ: ${q['Правильный ответ']}`;
+
+      answerBlock.appendChild(showBtn);
+      answerBlock.appendChild(badgeSpan);
+      card.appendChild(answerBlock);
+
+      // Options hidden panel
+      const optsWrap = document.createElement('div');
+      optsWrap.className = 'compact-options-wrap';
+      optsWrap.style.display = showAnswersGlobal ? 'block' : 'none';
+
+      const optsEl = document.createElement('div');
+      optsEl.className = 'compact-options';
+      keys.forEach(key => {
+        const optEl = document.createElement('div');
+        optEl.className = 'compact-option-pill' + (key === correctKey ? ' correct' : '');
+        
+        const keyEl = document.createElement('span');
+        keyEl.style.cssText = 'font-weight:700;';
+        keyEl.textContent = `${key}: `;
+
+        const textEl = document.createElement('span');
+        QuizUtils.renderContent(textEl, q[key] || '');
+
+        optEl.appendChild(keyEl);
+        optEl.appendChild(textEl);
+        optsEl.appendChild(optEl);
+      });
+      optsWrap.appendChild(optsEl);
+      card.appendChild(optsWrap);
+
+      // Toggle action (individual override)
+      showBtn.addEventListener('click', () => {
+        const isHidden = optsWrap.style.display === 'none';
+        if (isHidden) {
+          optsWrap.style.display = 'block';
+          badgeSpan.style.display = 'inline';
+          showBtn.textContent = 'Скрыть ответ';
+        } else {
+          optsWrap.style.display = 'none';
+          badgeSpan.style.display = 'none';
+          showBtn.textContent = 'Показать ответ';
+        }
+      });
+    }
+
+    grid.appendChild(card);
+  });
+
+  // Re-run KaTeX rendering for math symbols
+  try {
+    renderMathInElement(grid, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+        {left: '\\(', right: '\\)', display: false},
+        {left: '\\[', right: '\\]', display: true}
+      ],
+      throwOnError: false
+    });
+  } catch (e) {
+    console.warn('KaTeX render warning', e);
+  }
+}
+
+/* ============================================================
+   Pagination Layout
+   =========================================================== */
+function renderPaginationControls(totalItems, pageSize) {
+  const container = document.getElementById('pagination-controls');
+  container.innerHTML = '';
+  
+  const totalPages = Math.ceil(totalItems / pageSize);
+  if (totalPages <= 1) return;
+
+  // Previous
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'page-btn';
+  prevBtn.innerHTML = `&larr;`;
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderViewerGrid();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+  container.appendChild(prevBtn);
+
+  // Core pages list
+  const maxButtons = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+  let endPage = startPage + maxButtons - 1;
+
+  if (endPage > totalPages) {
+    endPage = totalPages;
+    startPage = Math.max(1, endPage - maxButtons + 1);
+  }
+
+  // First page ellipsis
+  if (startPage > 1) {
+    const firstBtn = document.createElement('button');
+    firstBtn.className = 'page-btn';
+    firstBtn.textContent = '1';
+    firstBtn.addEventListener('click', () => {
+      currentPage = 1;
+      renderViewerGrid();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    container.appendChild(firstBtn);
+
+    if (startPage > 2) {
+      const ell = document.createElement('span');
+      ell.style.cssText = 'color:var(--text-3);padding:0 4px;font-size:0.9rem;';
+      ell.textContent = '...';
+      container.appendChild(ell);
+    }
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    const btn = document.createElement('button');
+    btn.className = `page-btn ${currentPage === i ? 'active' : ''}`;
+    btn.textContent = i;
+    btn.addEventListener('click', () => {
+      currentPage = i;
+      renderViewerGrid();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    container.appendChild(btn);
+  }
+
+  // Last page ellipsis
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      const ell = document.createElement('span');
+      ell.style.cssText = 'color:var(--text-3);padding:0 4px;font-size:0.9rem;';
+      ell.textContent = '...';
+      container.appendChild(ell);
+    }
+
+    const lastBtn = document.createElement('button');
+    lastBtn.className = 'page-btn';
+    lastBtn.textContent = totalPages;
+    lastBtn.addEventListener('click', () => {
+      currentPage = totalPages;
+      renderViewerGrid();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    container.appendChild(lastBtn);
+  }
+
+  // Next
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'page-btn';
+  nextBtn.innerHTML = `&rarr;`;
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderViewerGrid();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+  container.appendChild(nextBtn);
+}
+</script>
+</body>
+</html>

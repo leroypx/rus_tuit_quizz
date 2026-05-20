@@ -116,16 +116,45 @@ const QuizUtils = (() => {
               questions:[...], answers:{idx: key}, shuffledOptions:{idx:[{key,text}]}}
   ---------------------------------------------------------- */
   function saveHistory(subjectId, result) {
-    const key = 'quizzer_history_' + subjectId;
-    let history = loadHistory(subjectId);
+    result.subjectId = subjectId;
+    const history = loadGlobalHistory();
     history.unshift(result);
-    if (history.length > 3) history = history.slice(0, 3);
-    localStorage.setItem(key, JSON.stringify(history));
+    if (history.length > 5) history.splice(5);
+    localStorage.setItem('quizzer_global_history', JSON.stringify(history));
+  }
+
+  function loadGlobalHistory() {
+    try {
+      let globalHistory = JSON.parse(localStorage.getItem('quizzer_global_history'));
+      if (globalHistory) return globalHistory;
+
+      // Migrate old subject-specific histories if global history does not exist
+      globalHistory = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('quizzer_history_')) {
+          const sId = key.replace('quizzer_history_', '');
+          try {
+            const list = JSON.parse(localStorage.getItem(key)) || [];
+            list.forEach(entry => {
+              entry.subjectId = sId;
+              globalHistory.push(entry);
+            });
+          } catch (e) {}
+        }
+      }
+      globalHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+      globalHistory = globalHistory.slice(0, 5);
+      localStorage.setItem('quizzer_global_history', JSON.stringify(globalHistory));
+      return globalHistory;
+    } catch {
+      return [];
+    }
   }
 
   function loadHistory(subjectId) {
-    try { return JSON.parse(localStorage.getItem('quizzer_history_' + subjectId)) || []; }
-    catch { return []; }
+    const globalHistory = loadGlobalHistory();
+    return globalHistory.filter(entry => entry.subjectId === subjectId);
   }
 
   function saveAnswered(subjectId, ids) {
@@ -474,7 +503,7 @@ const QuizUtils = (() => {
     loadManifest, loadQuestions,
     renderContent, openImgOverlay,
     saveSettings, loadSettings,
-    saveHistory, loadHistory,
+    saveHistory, loadHistory, loadGlobalHistory,
     saveAnswered, loadAnswered,
     renderHistory, renderSessionResult,
     toast,
