@@ -10,6 +10,7 @@
     {"id": "digital_media","name": "Цифровые медиа и технологии",    "type": "general", "file": "data/digital_media.xlsx"},
     {"id": "osnovi_ai",    "name": "Основы ИИ",                      "type": "general", "file": "data/osnovi_ai.xlsx"},
     {"id": "wireless_networks",    "name": "Беспроводные сети",      "type": "general", "file": "data/wireless_networks.xlsx"},    
+    {"id": "server_admin", "name": "Серверное администрирование",    "type": "general", "file": "data/server_adminis.xlsx"},    
     {"id": "int_systems",  "name": "Встраиваемые системы",           "type": "general", "file": "data/integrated_systems.xlsx"},
     {"id": "sql_databases","name": "Базы данных",                    "type": "general", "file": "data/sql_databases.xlsx"},
     {"id": "comm_networks","name": "Коммуникационные сети",          "type": "general", "file": "data/comm_networks.xlsx"},    
