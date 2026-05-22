@@ -14,6 +14,7 @@
     {"id": "int_systems",  "name": "Встраиваемые системы",           "type": "general", "file": "data/integrated_systems.xlsx"},
     {"id": "sql_databases","name": "Базы данных",                    "type": "general", "file": "data/sql_databases.xlsx"},
     {"id": "comm_networks","name": "Коммуникационные сети",          "type": "general", "file": "data/comm_networks.xlsx"},    
+    {"id": "comm_networks_easier","name": "Коммуникационные сети (упрощ)",          "type": "general", "file": "data/comm_networks_easier.xlsx"},    
     {"id": "os_quiz",      "name": "Операционные системы",           "type": "general", "file": "data/os_quiz.xlsx"},
     {"id": "eco_security", "name": "Экономическая безопасность",     "type": "general", "file": "data/eco_security.xlsx"},
     {"id": "physics1",     "name": "Физика 1",                       "type": "general", "file": "data/physics1.xlsx"}
