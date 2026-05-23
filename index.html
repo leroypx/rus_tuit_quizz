@@ -66,22 +66,14 @@
       </div>
     </div>
 
-    <!-- Math subjects -->
-    <div id="subject-grid-math" class="hidden">
-      <h2 class="mb-3" style="display:flex;align-items:center;gap:8px;">
-        <span class="badge badge-math">Math</span>
-        Математика
-      </h2>
-      <div class="subject-grid" id="cards-math"></div>
+    <!-- Tabs Navigation -->
+    <div id="subjects-tabs-container" class="hidden" style="margin-bottom: 28px; display: flex; justify-content: center;">
+      <div class="tabs" id="subjects-tabs"></div>
     </div>
 
-    <!-- General subjects -->
-    <div id="subject-grid-general" class="hidden mt-6">
-      <h2 class="mb-3" style="display:flex;align-items:center;gap:8px;">
-        <span class="badge badge-general">General</span>
-        Общие предметы
-      </h2>
-      <div class="subject-grid" id="cards-general"></div>
+    <!-- Unified Subjects Grid -->
+    <div id="subjects-grid-section" class="hidden">
+      <div class="subject-grid" id="cards-container"></div>
     </div>
 
     <!-- History section -->
@@ -98,21 +90,17 @@
 
 <!-- Mobile bottom nav (visible only on ≤768px) -->
 <nav class="bottom-nav">
-  <a href="#subject-grid-math" class="bottom-nav-item">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-    <span>Математика</span>
-  </a>
-  <a href="#subject-grid-general" class="bottom-nav-item">
+  <a href="#subjects-grid-section" class="bottom-nav-item">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
     <span>Предметы</span>
+  </a>
+  <a href="viewer.html" class="bottom-nav-item">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span>База</span>
   </a>
   <a href="#history-section" class="bottom-nav-item">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.54"/></svg>
     <span>История</span>
-  </a>
-  <a href="editor.html" class="bottom-nav-item">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-    <span>Редактор</span>
   </a>
 </nav>
 
@@ -230,6 +218,7 @@
 let allSubjects = [];
 const subjectTotalQuestions = {};
 let activeSidebarSubjectId = null;
+let activeTab = 'all';
 
 // Sidebar elements
 let sidebarOverlay, sidebarPanel, sidebarTitle, sidebarClose, sidebarSaveBtn, sidebarHeaderText;
@@ -348,16 +337,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('subjects-loading').classList.add('hidden');
     allSubjects = manifest.subjects;
 
-    const math    = manifest.subjects.filter(s => s.type === 'math');
-    const general = manifest.subjects.filter(s => s.type === 'general');
+    if (manifest.subjects.length) {
+      document.getElementById('subjects-tabs-container').classList.remove('hidden');
+      document.getElementById('subjects-grid-section').classList.remove('hidden');
 
-    if (math.length) {
-      document.getElementById('subject-grid-math').classList.remove('hidden');
-      math.forEach(s => renderCard(s, 'cards-math'));
-    }
-    if (general.length) {
-      document.getElementById('subject-grid-general').classList.remove('hidden');
-      general.forEach(s => renderCard(s, 'cards-general'));
+      // Generate Tab Buttons dynamically from manifest with fallback
+      const categories = manifest.categories && manifest.categories.length 
+        ? manifest.categories 
+        : [
+            {"id": "all", "label": "Все"},
+            {"id": "1-course", "label": "1 курс"},
+            {"id": "2-course", "label": "2 курс"},
+            {"id": "3-course", "label": "3 курс"},
+            {"id": "math", "label": "Математика"},
+            {"id": "technologies", "label": "Технологии"},
+            {"id": "economics", "label": "Экономика"},
+            {"id": "security", "label": "Безопасность"},
+            {"id": "other", "label": "Другое"}
+          ];
+
+      const tabsDiv = document.getElementById('subjects-tabs');
+      if (tabsDiv && categories.length) {
+        tabsDiv.innerHTML = categories.map((cat, idx) => 
+          `<button type="button" class="tab-btn ${idx === 0 ? 'active' : ''}" data-tag="${cat.id}">${cat.label}</button>`
+        ).join('');
+        
+        // set default active tab from the first category
+        activeTab = categories[0].id;
+        
+        const tabButtons = tabsDiv.querySelectorAll('.tab-btn');
+        tabButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            tabButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeTab = btn.dataset.tag;
+            filterSubjects();
+          });
+        });
+      }
+
+      // Render cards in single grid
+      manifest.subjects.forEach(s => renderCard(s, 'cards-container'));
     }
 
     renderHistorySection(manifest.subjects);
@@ -392,12 +412,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Search logic
   const searchInput = document.getElementById('search-subjects');
   if (searchInput) {
-    searchInput.addEventListener('input', e => {
-      const term = e.target.value.toLowerCase();
-      document.querySelectorAll('.subject-card').forEach(card => {
-        const name = card.querySelector('.subject-card-name').textContent.toLowerCase();
-        card.style.display = name.includes(term) ? '' : 'none';
-      });
+    searchInput.addEventListener('input', () => {
+      filterSubjects();
     });
   }
 });
@@ -405,12 +421,48 @@ document.addEventListener('DOMContentLoaded', async () => {
 /* ============================================================
    Subject card rendering
 ============================================================ */
+function getStatusIconHtml(status) {
+  if (!status) return '';
+  
+  const s = String(status).toLowerCase().trim();
+  let label = '';
+  let className = '';
+  let svg = '';
+  
+  if (s === 'relevant' || s === 'актуально') {
+    label = 'Актуально';
+    className = 'status-relevant';
+    svg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+  } else if (s === 'outdated' || s === 'неактуально') {
+    label = 'Неактуально';
+    className = 'status-outdated';
+    svg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+  } else if (s === 'community' || s === 'создано подписчиками' || s === 'подписчики') {
+    label = 'Создано подписчиками';
+    className = 'status-community';
+    svg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+  } else if (s === 'doubtful' || s === 'под вопросом') {
+    label = 'Под вопросом';
+    className = 'status-doubtful';
+    svg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+  } else if (s === 'ai' || s === 'сгенерировано ии' || s === 'ии') {
+    label = 'Сгенерировано ИИ';
+    className = 'status-ai';
+    svg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>`;
+  } else {
+    return '';
+  }
+  
+  return `<span class="status-indicator ${className}" tabindex="0" role="button" aria-label="${label}" data-tooltip="${label}">${svg}</span>`;
+}
+
 function renderCard(subject, containerId) {
   const history  = QuizUtils.loadHistory(subject.id);
   const answered = QuizUtils.loadAnswered(subject.id);
 
   const card = document.createElement('div');
   card.className = 'subject-card';
+  card.dataset.tags = subject.tags ? subject.tags.join(',') : '';
 
   const historyHtml = history.length
     ? history.map(h => {
@@ -420,6 +472,7 @@ function renderCard(subject, containerId) {
     : '<span class="text-faint text-xs">нет истории</span>';
 
   const answeredCount = answered.size;
+  const statusHtml = getStatusIconHtml(subject.status);
 
   card.innerHTML = `
     <div class="subject-card-header">
@@ -427,6 +480,7 @@ function renderCard(subject, containerId) {
         <div class="subject-card-name">${subject.name}</div>
         <div class="subject-card-meta mt-2" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span class="badge badge-${subject.type}">${subject.type === 'math' ? 'Math' : 'General'}</span>
+          ${statusHtml}
           <span id="q-count-${subject.id}" class="text-xs text-muted">...</span>
           ${answeredCount > 0 ? `<span class="text-xs text-success">${answeredCount} отвечено</span>` : ''}
         </div>
@@ -449,6 +503,22 @@ function renderCard(subject, containerId) {
   // Bind gear-btn click
   card.querySelector('.gear-btn').addEventListener('click', () => {
     openSettingsSidebar(subject.id);
+  });
+}
+
+function filterSubjects() {
+  const term = (document.getElementById('search-subjects')?.value || '').toLowerCase().trim();
+  document.querySelectorAll('.subject-card').forEach(card => {
+    const name = card.querySelector('.subject-card-name').textContent.toLowerCase();
+    const cardTags = card.dataset.tags ? card.dataset.tags.split(',') : [];
+    const matchesSearch = name.includes(term);
+    const matchesTab = (activeTab === 'all' || cardTags.includes(activeTab));
+    
+    if (matchesSearch && matchesTab) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
   });
 }
 

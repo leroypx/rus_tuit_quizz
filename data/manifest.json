@@ -1,22 +1,254 @@
 {
+  "categories": [
+    {
+      "id": "all",
+      "label": "Все"
+    },
+    {
+      "id": "1-course",
+      "label": "1 курс"
+    },
+    {
+      "id": "2-course",
+      "label": "2 курс"
+    },
+    {
+      "id": "3-course",
+      "label": "3 курс"
+    },
+    {
+      "id": "math",
+      "label": "Математика"
+    },
+    {
+      "id": "technologies",
+      "label": "Технологии"
+    },
+    {
+      "id": "economics",
+      "label": "Экономика"
+    },
+    {
+      "id": "choice",
+      "label": "Общие предметы"
+    }
+  ],
   "subjects": [
-    {"id": "calculus1",    "name": "Calculus 1",        "type": "math",    "file": "data/calculus1.xlsx"},
-    {"id": "calculus2",    "name": "Calculus 2",        "type": "math",    "file": "data/calculus2.xlsx"},
-    {"id": "diff",         "name": "Дифференциальные уравнения",     "type": "math",    "file": "data/diff.xlsx"},
-    {"id": "prob_stat",    "name": "Вероятность и статистика",       "type": "math",    "file": "data/statistics.xlsx"},
-    {"id": "bjd",          "name": "Безопасность жизнедеятельности", "type": "general", "file": "data/bjd.xlsx"},
-    {"id": "religion",     "name": "Религиоведение",                 "type": "general", "file": "data/religion.xlsx"},
-    {"id": "religion_alt", "name": "Религиоведение old",             "type": "general", "file": "data/religion_476.xlsx"},
-    {"id": "digital_media","name": "Цифровые медиа и технологии",    "type": "general", "file": "data/digital_media.xlsx"},
-    {"id": "osnovi_ai",    "name": "Основы ИИ",                      "type": "general", "file": "data/osnovi_ai.xlsx"},
-    {"id": "wireless_networks",    "name": "Беспроводные сети",      "type": "general", "file": "data/wireless_networks.xlsx"},    
-    {"id": "server_admin", "name": "Серверное администрирование",    "type": "general", "file": "data/server_adminis.xlsx"},    
-    {"id": "int_systems",  "name": "Встраиваемые системы",           "type": "general", "file": "data/integrated_systems.xlsx"},
-    {"id": "sql_databases","name": "Базы данных",                    "type": "general", "file": "data/sql_databases.xlsx"},
-    {"id": "comm_networks","name": "Коммуникационные сети",          "type": "general", "file": "data/comm_networks.xlsx"},    
-    {"id": "comm_networks_easier","name": "Коммуникационные сети (упрощ)",          "type": "general", "file": "data/comm_networks_easier.xlsx"},    
-    {"id": "os_quiz",      "name": "Операционные системы",           "type": "general", "file": "data/os_quiz.xlsx"},
-    {"id": "eco_security", "name": "Экономическая безопасность",     "type": "general", "file": "data/eco_security.xlsx"},
-    {"id": "physics1",     "name": "Физика 1",                       "type": "general", "file": "data/physics1.xlsx"}
+    {
+      "id": "calculus1",
+      "name": "Calculus 1",
+      "type": "math",
+      "file": "data/calculus1.xlsx",
+      "status": "relevant",
+      "tags": [
+        "math",
+        "1-course",
+        "all"
+      ]
+    },
+    {
+      "id": "calculus2",
+      "name": "Calculus 2",
+      "type": "math",
+      "file": "data/calculus2.xlsx",
+      "status": "relevant",
+      "tags": [
+        "math",
+        "1-course",
+        "all"
+      ]
+    },
+    {
+      "id": "diff",
+      "name": "Дифференциальные уравнения",
+      "type": "math",
+      "file": "data/diff.xlsx",
+      "status": "relevant",
+      "tags": [
+        "math",
+        "2-course",
+        "all"
+      ]
+    },
+    {
+      "id": "prob_stat",
+      "name": "Вероятность и статистика",
+      "type": "math",
+      "file": "data/statistics.xlsx",
+      "status": "relevant",
+      "tags": [
+        "math",
+        "2-course",
+        "all"
+      ]
+    },
+    {
+      "id": "bjd",
+      "name": "Безопасность жизнедеятельности",
+      "type": "general",
+      "file": "data/bjd.xlsx",
+      "status": "relevant",
+      "tags": [
+        "3-course",
+        "all",
+        "choice"
+      ]
+    },
+    {
+      "id": "religion",
+      "name": "Религиоведение",
+      "type": "general",
+      "file": "data/religion.xlsx",
+      "status": "relevant",
+      "tags": [
+        "1-course",
+        "choice",
+        "all"
+      ]
+    },
+    {
+      "id": "religion_alt",
+      "name": "Религиоведение old",
+      "type": "general",
+      "file": "data/religion_476.xlsx",
+      "status": "doubtful",
+      "tags": [
+        "1-course",
+        "all",
+        "choice"
+      ]
+    },
+    {
+      "id": "digital_media",
+      "name": "Цифровые медиа и технологии",
+      "type": "general",
+      "file": "data/digital_media.xlsx",
+      "status": "community",
+      "tags": [
+        "technologies",
+        "2-course",
+        "all"
+      ]
+    },
+    {
+      "id": "osnovi_ai",
+      "name": "Основы ИИ",
+      "type": "general",
+      "file": "data/osnovi_ai.xlsx",
+      "status": "relevant",
+      "tags": [
+        "technologies",
+        "2-course",
+        "all"
+      ]
+    },
+    {
+      "id": "wireless_networks",
+      "name": "Беспроводные сети",
+      "type": "general",
+      "file": "data/wireless_networks.xlsx",
+      "status": "community",
+      "tags": [
+        "technologies",
+        "2-course",
+        "all"
+      ]
+    },
+    {
+      "id": "server_admin",
+      "name": "Серверное администрирование",
+      "type": "general",
+      "file": "data/server_adminis.xlsx",
+      "status": "community",
+      "tags": [
+        "technologies",
+        "2-course",
+        "all"
+      ]
+    },
+    {
+      "id": "int_systems",
+      "name": "Встраиваемые системы",
+      "type": "general",
+      "file": "data/integrated_systems.xlsx",
+      "status": "community",
+      "tags": [
+        "technologies",
+        "2-course",
+        "all"
+      ]
+    },
+    {
+      "id": "sql_databases",
+      "name": "Базы данных",
+      "type": "general",
+      "file": "data/sql_databases.xlsx",
+      "status": "relevant",
+      "tags": [
+        "technologies",
+        "2-course",
+        "all"
+      ]
+    },
+    {
+      "id": "comm_networks",
+      "name": "Коммуникационные сети",
+      "type": "general",
+      "file": "data/comm_networks.xlsx",
+      "status": "outdated",
+      "tags": [
+        "technologies",
+        "2-course",
+        "all"
+      ]
+    },
+    {
+      "id": "comm_networks_easier",
+      "name": "Коммуникационные сети (упрощ)",
+      "type": "general",
+      "file": "data/comm_networks_easier.xlsx",
+      "status": "outdated",
+      "tags": [
+        "technologies",
+        "2-course",
+        "all"
+      ]
+    },
+    {
+      "id": "os_quiz",
+      "name": "Операционные системы",
+      "type": "general",
+      "file": "data/os_quiz.xlsx",
+      "status": "outdated",
+      "tags": [
+        "technologies",
+        "3-course",
+        "all"
+      ]
+    },
+    {
+      "id": "eco_security",
+      "name": "Экономическая безопасность",
+      "type": "general",
+      "file": "data/eco_security.xlsx",
+      "status": "doubtful",
+      "tags": [
+        "economics",
+        "3-course",
+        "all"
+      ]
+    },
+    {
+      "id": "physics1",
+      "name": "Физика 1",
+      "type": "general",
+      "file": "data/physics1.xlsx",
+      "status": "doubtful",
+      "tags": [
+        "1-course",
+        "technologies",
+        "all"
+      ]
+    }
   ]
 }
