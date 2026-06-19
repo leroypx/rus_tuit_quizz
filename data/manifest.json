@@ -226,6 +226,18 @@
         "all"
       ]
     },
+        {
+      "id": "os_quiz_alt",
+      "name": "Операционные системы ALT",
+      "type": "general",
+      "file": "data/os_quiz_alt.xlsx",
+      "status": "ai",
+      "tags": [
+        "technologies",
+        "3-course",
+        "all"
+      ]
+    },
     {
       "id": "eco_security",
       "name": "Экономическая безопасность",
